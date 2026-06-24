@@ -1,0 +1,28 @@
+{
+  "_instrucciones": "MANUAL — el CM actualiza esto a inicio de mes. Competencia sale de Not Just Analytics / Meta Business Suite; LinkedIn de LinkedIn Analytics. Agrega la key del mes nuevo (ej. '2026-06') en cada bloque y haz commit/push (Vercel redeploya solo). Si falta el mes seleccionado, el dashboard muestra una alerta.",
+  "competencia": {
+    "instagram": {
+      "2026-04": { "EBEMA": 8541, "Construmart": 63700, "MCT Materiales": 8900, "Prodalam": 17500, "Construplaza": 10800, "Red MTS": 13600 },
+      "2026-05": { "EBEMA": 8757, "Construmart": 67600, "MCT Materiales": 10600, "Prodalam": 17700, "Construplaza": 10900, "Red MTS": 13700 }
+    },
+    "meta": {
+      "2026-04": { "EBEMA": 11500, "Construmart": 81500, "MCT Materiales": 45700, "Prodalam": 11000, "Construplaza": 3200, "Red MTS": 49500 },
+      "2026-05": { "EBEMA": 11537, "Construmart": 82300, "MCT Materiales": 45700, "Prodalam": 11100, "Construplaza": 3300, "Red MTS": 49400 }
+    }
+  },
+  "linkedin": {
+    "profileUrl": "",
+    "followers": { "2026-04": 5836, "2026-05": 5882, "2026-06": 5974 },
+    "monthly": {
+      "2026-04": { "acquired": 57, "impressions": 5052, "views": 498, "reactions": 94, "engagement": 3.2 },
+      "2026-05": { "acquired": 46, "impressions": 12154, "views": 583, "reactions": 234, "engagement": 76.7 }
+    },
+    "best": {
+      "2026-05": [
+        { "label": "POST: EFEMÉRIDE", "date": "26 mayo", "impressions": 4768, "reactions": 110, "clicks": 2795, "newFollowers": 10 },
+        { "label": "REEL: PLANTA IND", "date": "5 mayo", "impressions": 3888, "reactions": 79, "clicks": 6220, "newFollowers": 5 },
+        { "label": "REEL: EFEMÉRIDE", "date": "15 mayo", "impressions": 1346, "reactions": 18, "clicks": 48, "newFollowers": 1 }
+      ]
+    }
+  }
+}
