@@ -53,6 +53,18 @@ function delta(cur, prev) {
   return { pct, dir: pct > 0 ? 1 : pct < 0 ? -1 : 0 };
 }
 
+// La API solo da el total de seguidores ACTUAL. Reconstruye el total de cada mes
+// hacia atrás: total actual − nuevos seguidores de los meses posteriores. (Aproximado.)
+function followersByMonth(monthly, currentTotal, gainKey) {
+  const map = {};
+  let running = currentTotal;
+  for (let i = (monthly || []).length - 1; i >= 0; i--) {
+    map[monthly[i].key] = running;
+    if (running != null) running -= (monthly[i][gainKey] || 0);
+  }
+  return map;
+}
+
 // ---------------- UI helpers ----------------
 function Card({ label, value, accent, change }) {
   const arrow = change ? (change.dir > 0 ? "▲" : change.dir < 0 ? "▼" : "▬") : null;
@@ -584,18 +596,22 @@ export default function Page() {
   const ig = useMemo(() => {
     const m = data?.instagram;
     if (!m) return null;
-    const cur = m.monthly?.find((x) => x.key === sel) || null;
-    const prev = m.monthly?.find((x) => x.key === prevKey) || null;
-    return { followers: m.followers, username: m.username, cur, prev, best: m.bestByMonth?.[sel] || [], series: m.monthly || [] };
+    const monthly = m.monthly || [];
+    const fMap = followersByMonth(monthly, m.followers ?? null, "newFollowers");
+    const cur = monthly.find((x) => x.key === sel) || null;
+    const prev = monthly.find((x) => x.key === prevKey) || null;
+    return { followers: fMap[sel] ?? m.followers, fPrev: fMap[prevKey] ?? null, username: m.username, cur, prev, best: m.bestByMonth?.[sel] || [], series: monthly };
   }, [data, sel, prevKey]);
 
   // --- Facebook ---
   const fb = useMemo(() => {
     const m = data?.facebook;
     if (!m) return null;
-    const cur = m.monthly?.find((x) => x.key === sel) || null;
-    const prev = m.monthly?.find((x) => x.key === prevKey) || null;
-    return { followers: m.followers, name: m.name, cur, prev, best: m.bestByMonth?.[sel] || [], series: m.monthly || [] };
+    const monthly = m.monthly || [];
+    const fMap = followersByMonth(monthly, m.followers ?? null, "fanAdds");
+    const cur = monthly.find((x) => x.key === sel) || null;
+    const prev = monthly.find((x) => x.key === prevKey) || null;
+    return { followers: fMap[sel] ?? m.followers, fPrev: fMap[prevKey] ?? null, name: m.name, cur, prev, best: m.bestByMonth?.[sel] || [], series: monthly };
   }, [data, sel, prevKey]);
 
   // --- Meta Ads ---
@@ -640,13 +656,21 @@ export default function Page() {
     const monthlyOf = (k) => api?.monthly?.[k] || man?.monthly?.[k] || null;
     const cur = monthlyOf(sel);
     const prev = monthlyOf(prevKey);
-    const followersMap = man?.followers || {};
-    const isLatest = months.length && sel === months[months.length - 1];
-    let followers = followersMap[sel] ?? null;
-    if (api?.followersTotal != null && isLatest) followers = api.followersTotal;
-    const fPrev = followersMap[prevKey] ?? null;
+    const manMap = man?.followers || {};
+    // Reconstrucción del total por mes: total actual − adquiridos de meses posteriores.
+    const latestKey = months[months.length - 1];
+    const currentTotal = api?.followersTotal ?? manMap[latestKey] ?? null;
+    const fMap = {};
+    let running = currentTotal;
+    for (let i = months.length - 1; i >= 0; i--) {
+      const k = months[i];
+      fMap[k] = running ?? manMap[k] ?? null;
+      if (running != null) running -= (monthlyOf(k)?.acquired || 0);
+    }
+    const followers = fMap[sel];
+    const fPrev = fMap[prevKey] ?? null;
     const best = (api?.bestByMonth?.[sel]?.length ? api.bestByMonth[sel] : man?.best?.[sel]) || [];
-    const series = months.map((k) => ({ key: k, ...(monthlyOf(k) || {}), followers: followersMap[k] ?? null }));
+    const series = months.map((k) => ({ key: k, ...(monthlyOf(k) || {}), followers: fMap[k] ?? null }));
     return { cur, prev, followers, fPrev, best, series, hasMonth: !!cur, connected: !!api };
   }, [data, sel, prevKey, months]);
 
@@ -812,7 +836,7 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
         {ig?.cur ? (
           <>
             <div style={grid(150)}>
-              <Card label="Seguidores" value={fmt(ig.followers)} accent="#7c3aed" />
+              <Card label="Seguidores" value={fmt(ig.followers)} accent="#7c3aed" change={delta(ig.followers, ig.fPrev)} />
               <Card label="Nuevos seguidores" value={fmt(ig.cur.newFollowers)} change={delta(ig.cur.newFollowers, ig.prev?.newFollowers)} />
               <Card label="Posts" value={fmt(ig.cur.posts)} change={delta(ig.cur.posts, ig.prev?.posts)} />
               <Card label="Alcance" value={fmt(ig.cur.reach)} accent="#2563eb" change={delta(ig.cur.reach, ig.prev?.reach)} />
@@ -873,7 +897,7 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
         {fb?.cur ? (
           <>
             <div style={grid(150)}>
-              <Card label="Seguidores" value={fmt(fb.followers)} accent="#7c3aed" />
+              <Card label="Seguidores" value={fmt(fb.followers)} accent="#7c3aed" change={delta(fb.followers, fb.fPrev)} />
               <Card label="Nuevos seguidores" value={fmt(fb.cur.fanAdds)} change={delta(fb.cur.fanAdds, fb.prev?.fanAdds)} />
               <Card label="Posts" value={fmt(fb.cur.posts)} change={delta(fb.cur.posts, fb.prev?.posts)} />
               <Card label="Espectadores (alcance)" value={fmt(fb.cur.reach)} accent="#2563eb" change={delta(fb.cur.reach, fb.prev?.reach)} />
