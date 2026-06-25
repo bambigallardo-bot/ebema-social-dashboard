@@ -40,27 +40,35 @@ export async function GET() {
   try {
     const months = lastMonths(Number(process.env.SOCIAL_MONTHS || 12));
 
-    const settle = async (fn) => {
-      try { return { value: await fn() }; }
+    // Corta una fuente lenta para que la función nunca exceda el límite de Vercel y siempre devuelva JSON.
+    const withTimeout = (p, ms, label) =>
+      Promise.race([
+        Promise.resolve().then(p),
+        new Promise((_, rej) => setTimeout(() => rej(new Error(`${label}: tardó más de ${ms / 1000}s`)), ms)),
+      ]);
+    const settle = async (fn, ms, label) => {
+      try { return { value: await withTimeout(fn, ms, label) }; }
       catch (e) { return { error: String(e && e.message ? e.message : e) }; }
     };
 
     // En paralelo: cada fuente pega a una API distinta, así el tiempo total = la más lenta.
+    // Cada una con su propio timeout para que ninguna tumbe la respuesta completa.
     const [meta, email, whatsapp, googleAds, ga4, linkedin] = await Promise.all([
-      getMetaDashboard(),
-      settle(getEmail),
-      settle(getWhatsapp),
-      settle(() => getGoogleAds(months)),
-      settle(() => getGA4(months)),
-      settle(() => getLinkedin(months)),
+      settle(getMetaDashboard, 45000, "Meta"),
+      settle(getEmail, 25000, "Email"),
+      settle(getWhatsapp, 25000, "WhatsApp"),
+      settle(() => getGoogleAds(months), 30000, "Google Ads"),
+      settle(() => getGA4(months), 30000, "GA4"),
+      settle(() => getLinkedin(months), 25000, "LinkedIn"),
     ]);
+    const m = meta.value || {};
 
     const result = {
       updatedAt: new Date().toISOString(),
-      months: meta.months,
-      instagram: meta.instagram,
-      facebook: meta.facebook,
-      ads: meta.ads,
+      months: m.months || months.map((x) => x.key),
+      instagram: m.instagram || null,
+      facebook: m.facebook || null,
+      ads: m.ads || null,
       googleAds: googleAds.value || null,
       ga4: ga4.value || null,
       linkedin: linkedin.value || null,
@@ -68,7 +76,8 @@ export async function GET() {
       whatsapp: whatsapp.value || null,
       manual: manual || null,
       errors: {
-        ...meta.errors,
+        ...(m.errors || {}),
+        meta: meta.error || null,
         email: email.error || null,
         whatsapp: whatsapp.error || null,
         googleAds: googleAds.error || null,
@@ -77,8 +86,15 @@ export async function GET() {
       },
     };
 
+    // Si una fuente falló esta vez pero teníamos datos buenos en caché, conserva los previos (no mostrar vacío).
+    if (_cache.data) {
+      for (const k of ["instagram", "facebook", "ads", "googleAds", "ga4", "linkedin", "email", "whatsapp"]) {
+        if (result[k] == null && _cache.data[k] != null) result[k] = _cache.data[k];
+      }
+    }
+
     // Solo cachea si al menos una fuente vino bien (no cachear fallos totales/transitorios).
-    const anyOk = meta.instagram || meta.facebook || meta.ads || result.googleAds || result.ga4 || result.linkedin || result.email || result.whatsapp;
+    const anyOk = result.instagram || result.facebook || result.ads || result.googleAds || result.ga4 || result.linkedin || result.email || result.whatsapp;
     if (anyOk) {
       _cache = { at: Date.now(), data: result };
       return Response.json(result, { headers: { "Cache-Control": "no-store" } });

@@ -610,11 +610,15 @@ export default function Page() {
   const load = useCallback(async () => {
     try {
       const res = await fetch("/api/dashboard", { cache: "no-store" });
-      const json = await res.json();
+      const text = await res.text();
+      let json;
+      try { json = JSON.parse(text); }
+      catch { throw new Error("El servidor está tardando en responder (muchas APIs). Reintentando automáticamente…"); }
       if (!res.ok) throw new Error(json.error || "Error al cargar");
       setData(json);
       setError(null);
     } catch (e) {
+      // No borramos los datos ya cargados: solo mostramos el aviso y el intervalo reintenta.
       setError(String(e.message || e));
     } finally {
       setLoading(false);
