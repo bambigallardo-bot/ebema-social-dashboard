@@ -120,25 +120,26 @@ function Conclusion({ id, text }) {
     else { try { localStorage.removeItem(`concl:${id}`); } catch (_) {} setLocalOv(null); }
     setSaving(false); setEditing(false);
   };
+  const whiteBtn = { background: "rgba(255,255,255,0.18)", color: "#fff", border: "1px solid rgba(255,255,255,0.55)", borderRadius: 8, padding: "5px 10px", cursor: "pointer", fontSize: 12 };
   return (
-    <div style={{ ...panel, borderLeft: `3px solid ${override ? BRAND : "#7c3aed"}`, marginTop: 18 }}>
+    <div style={{ background: BRAND, borderRadius: 14, padding: 16, marginTop: 18, color: "#fff", boxShadow: "0 1px 3px rgba(225,29,72,0.25)" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, gap: 8 }}>
-        <div style={{ fontSize: 11, color: override ? BRAND : "#7c3aed", fontWeight: 600, letterSpacing: 0.4 }}>📝 CONCLUSIÓN {override ? "· EDITADA" : "AUTOMÁTICA"}</div>
+        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.85)", fontWeight: 700, letterSpacing: 0.4 }}>📝 CONCLUSIÓN {override ? "· EDITADA" : "AUTOMÁTICA"}</div>
         {ctx.canEdit && !editing && (
-          <button className="no-print" onClick={() => { setDraft(shown); setEditing(true); }} style={miniBtn}>✏️ Editar</button>
+          <button className="no-print" onClick={() => { setDraft(shown); setEditing(true); }} style={whiteBtn}>✏️ Editar</button>
         )}
       </div>
       {editing ? (
         <div className="no-print">
-          <textarea value={draft} onChange={(e) => setDraft(e.target.value)} rows={5} style={{ width: "100%", boxSizing: "border-box", background: "#f4f5f7", color: "#1a1a1a", border: "1px solid #e4e7ec", borderRadius: 8, padding: 10, fontSize: 14, fontFamily: "inherit", lineHeight: 1.5 }} />
+          <textarea value={draft} onChange={(e) => setDraft(e.target.value)} rows={5} style={{ width: "100%", boxSizing: "border-box", background: "#fff", color: "#1a1a1a", border: "1px solid rgba(255,255,255,0.6)", borderRadius: 8, padding: 10, fontSize: 14, fontFamily: "inherit", lineHeight: 1.5 }} />
           <div style={{ display: "flex", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
-            <button disabled={saving} onClick={doSave} style={{ ...miniBtn, background: BRAND, color: "#fff", border: "none" }}>{saving ? "Guardando…" : "Guardar"}</button>
-            <button disabled={saving} onClick={doReset} style={miniBtn}>Restaurar automática</button>
-            <button onClick={() => setEditing(false)} style={miniBtn}>Cancelar</button>
+            <button disabled={saving} onClick={doSave} style={{ background: "#fff", color: BRAND, border: "none", borderRadius: 8, padding: "5px 12px", cursor: "pointer", fontSize: 12, fontWeight: 700 }}>{saving ? "Guardando…" : "Guardar"}</button>
+            <button disabled={saving} onClick={doReset} style={whiteBtn}>Restaurar automática</button>
+            <button onClick={() => setEditing(false)} style={whiteBtn}>Cancelar</button>
           </div>
         </div>
       ) : (
-        <div style={{ fontSize: 14.5, lineHeight: 1.55, color: "#1a1a1a", whiteSpace: "pre-wrap" }}>{shown}</div>
+        <div style={{ fontSize: 14.5, lineHeight: 1.55, color: "#fff", whiteSpace: "pre-wrap" }}>{shown}</div>
       )}
     </div>
   );
@@ -769,7 +770,7 @@ export default function Page() {
             <button onClick={() => window.print()} style={{ background: "#f4f5f7", color: "#1a1a1a", border: "1px solid #e4e7ec", borderRadius: 10, padding: "9px 14px", cursor: "pointer", fontSize: 14 }}>🖨️ Exportar PDF</button>
             <button onClick={load} style={{ background: BRAND, color: "#fff", border: "none", borderRadius: 10, padding: "9px 16px", cursor: "pointer", fontSize: 14 }}>Actualizar</button>
           </div>
-          <img src="/logo-copylab.png" alt="Grupo CopyLab" title="Grupo CopyLab LATAM" style={{ height: 38, objectFit: "contain" }} />
+          <img src="/logo-copylab.png" alt="Grupo CopyLab" title="Grupo CopyLab LATAM" style={{ height: 44, objectFit: "contain", filter: "brightness(0)" }} />
         </div>
       </header>
 
@@ -797,8 +798,8 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
         <Section title={`🧠 Resumen ejecutivo · ${monthLabel(sel)}`} subtitle="Lo más destacado del mes, por canal">
           <div style={grid(280)}>
             {exec.map((it, i) => (
-              <div key={i} style={{ ...panel, borderLeft: "3px solid #2563eb" }}>
-                <div style={{ fontSize: 14.5, lineHeight: 1.45 }}><span style={{ marginRight: 6 }}>{it.emoji}</span>{it.t}</div>
+              <div key={i} style={{ ...panel, borderLeft: `4px solid ${BRAND}` }}>
+                <div style={{ fontSize: 14.5, lineHeight: 1.45, color: "#1a1a1a" }}><span style={{ marginRight: 6 }}>{it.emoji}</span>{it.t}</div>
               </div>
             ))}
           </div>
