@@ -5,6 +5,9 @@ import { getGA4 } from "../../../lib/ga4";
 import { getLinkedin } from "../../../lib/linkedin";
 import manual from "../../../data/manual.json";
 
+// Más tiempo de ejecución (muchas APIs externas). Hobby admite hasta 60s.
+export const maxDuration = 60;
+
 // Devuelve los últimos N meses (incluido el actual) como { key, since, until }.
 function lastMonths(n) {
   const out = [];
@@ -42,12 +45,15 @@ export async function GET() {
       catch (e) { return { error: String(e && e.message ? e.message : e) }; }
     };
 
-    const meta = await getMetaDashboard();
-    const email = await settle(getEmail);
-    const whatsapp = await settle(getWhatsapp);
-    const googleAds = await settle(() => getGoogleAds(months));
-    const ga4 = await settle(() => getGA4(months));
-    const linkedin = await settle(() => getLinkedin(months));
+    // En paralelo: cada fuente pega a una API distinta, así el tiempo total = la más lenta.
+    const [meta, email, whatsapp, googleAds, ga4, linkedin] = await Promise.all([
+      getMetaDashboard(),
+      settle(getEmail),
+      settle(getWhatsapp),
+      settle(() => getGoogleAds(months)),
+      settle(() => getGA4(months)),
+      settle(() => getLinkedin(months)),
+    ]);
 
     const result = {
       updatedAt: new Date().toISOString(),
