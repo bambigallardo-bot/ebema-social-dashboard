@@ -38,7 +38,7 @@ export async function GET() {
   }
 
   try {
-    const months = lastMonths(Number(process.env.SOCIAL_MONTHS || 6));
+    const months = lastMonths(Number(process.env.SOCIAL_MONTHS || 12));
 
     const settle = async (fn) => {
       try { return { value: await fn() }; }
