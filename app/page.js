@@ -1,6 +1,9 @@
 "use client";
 
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo, useContext, createContext } from "react";
+
+// Contexto de edición: provee si se puede editar, de dónde leer los overrides y cómo guardar.
+const EditCtx = createContext({ kv: false, canEdit: false, getOverride: () => null, save: null, reset: null });
 import {
   BarChart,
   Bar,
@@ -90,25 +93,38 @@ const toneColor = { good: "#4ade80", warn: "#fbbf24", bad: "#f87171", info: "#60
 
 const miniBtn = { background: "#0b1220", color: "#cdd9ee", border: "1px solid #1f2b45", borderRadius: 8, padding: "5px 10px", cursor: "pointer", fontSize: 12 };
 
-// Conclusión auto-redactada, editable por el usuario (override guardado en localStorage).
+// Conclusión auto-redactada, editable en modo edición. Override desde servidor (KV) o localStorage.
 function Conclusion({ id, text }) {
-  const [override, setOverride] = useState(null);
+  const ctx = useContext(EditCtx);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState("");
-  const storeKey = id ? `concl:${id}` : null;
+  const [localOv, setLocalOv] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const usingServer = ctx.kv;
   useEffect(() => {
-    if (!storeKey) return;
-    try { setOverride(localStorage.getItem(storeKey)); } catch (_) {}
-  }, [storeKey]);
+    if (usingServer || !id) return;
+    try { setLocalOv(localStorage.getItem(`concl:${id}`)); } catch (_) {}
+  }, [id, usingServer]);
+  const override = usingServer ? ctx.getOverride(id) : localOv;
   if (!text && !override) return null;
   const shown = (override ?? text) || "";
-  const save = () => { try { localStorage.setItem(storeKey, draft); } catch (_) {} setOverride(draft); setEditing(false); };
-  const reset = () => { try { localStorage.removeItem(storeKey); } catch (_) {} setOverride(null); setEditing(false); };
+  const doSave = async () => {
+    setSaving(true);
+    if (usingServer) { await ctx.save(id, draft); }
+    else { try { localStorage.setItem(`concl:${id}`, draft); } catch (_) {} setLocalOv(draft); }
+    setSaving(false); setEditing(false);
+  };
+  const doReset = async () => {
+    setSaving(true);
+    if (usingServer) { await ctx.reset(id); }
+    else { try { localStorage.removeItem(`concl:${id}`); } catch (_) {} setLocalOv(null); }
+    setSaving(false); setEditing(false);
+  };
   return (
     <div style={{ ...panel, borderLeft: `3px solid ${override ? BRAND : "#a78bfa"}`, marginTop: 18 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, gap: 8 }}>
         <div style={{ fontSize: 11, color: override ? BRAND : "#a78bfa", fontWeight: 600, letterSpacing: 0.4 }}>📝 CONCLUSIÓN {override ? "· EDITADA" : "AUTOMÁTICA"}</div>
-        {storeKey && !editing && (
+        {ctx.canEdit && !editing && (
           <button className="no-print" onClick={() => { setDraft(shown); setEditing(true); }} style={miniBtn}>✏️ Editar</button>
         )}
       </div>
@@ -116,8 +132,8 @@ function Conclusion({ id, text }) {
         <div className="no-print">
           <textarea value={draft} onChange={(e) => setDraft(e.target.value)} rows={5} style={{ width: "100%", boxSizing: "border-box", background: "#0b1220", color: "#e6edf6", border: "1px solid #1f2b45", borderRadius: 8, padding: 10, fontSize: 14, fontFamily: "inherit", lineHeight: 1.5 }} />
           <div style={{ display: "flex", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
-            <button onClick={save} style={{ ...miniBtn, background: BRAND, color: "#fff", border: "none" }}>Guardar</button>
-            <button onClick={reset} style={miniBtn}>Restaurar automática</button>
+            <button disabled={saving} onClick={doSave} style={{ ...miniBtn, background: BRAND, color: "#fff", border: "none" }}>{saving ? "Guardando…" : "Guardar"}</button>
+            <button disabled={saving} onClick={doReset} style={miniBtn}>Restaurar automática</button>
             <button onClick={() => setEditing(false)} style={miniBtn}>Cancelar</button>
           </div>
         </div>
@@ -408,12 +424,81 @@ function buildImprovements(sel, ig, fb, ads, gads, ga4, li, email, comp) {
   return out;
 }
 
+// ---------------- Editor de competencia (modo edición) ----------------
+function CompetenciaEditor({ source, monthKey, prevMonthKey, onSave }) {
+  const ig = (source && source.instagram) || {};
+  const mt = (source && source.meta) || {};
+  const seed = () => {
+    const brands = Array.from(new Set([
+      ...Object.keys(ig[monthKey] || {}),
+      ...Object.keys(mt[monthKey] || {}),
+      ...Object.keys(ig[prevMonthKey] || {}),
+      ...Object.keys(mt[prevMonthKey] || {}),
+    ]));
+    if (!brands.length) brands.push("EBEMA");
+    return brands.map((b) => ({ brand: b, ig: (ig[monthKey] || {})[b] ?? "", meta: (mt[monthKey] || {})[b] ?? "" }));
+  };
+  const [rows, setRows] = useState(seed);
+  const [saving, setSaving] = useState(false);
+  const [ok, setOk] = useState(false);
+  const upd = (i, f, v) => setRows((rs) => rs.map((r, idx) => (idx === i ? { ...r, [f]: v } : r)));
+  const inp = { background: "#0b1220", color: "#e6edf6", border: "1px solid #1f2b45", borderRadius: 6, padding: "6px 8px", fontSize: 13, width: "100%", boxSizing: "border-box" };
+  const save = async () => {
+    setSaving(true); setOk(false);
+    const obj = { instagram: { ...ig }, meta: { ...mt } };
+    const igM = {}, mtM = {};
+    for (const r of rows) {
+      const b = (r.brand || "").trim();
+      if (!b) continue;
+      if (r.ig !== "" && r.ig != null && !isNaN(Number(r.ig))) igM[b] = Number(r.ig);
+      if (r.meta !== "" && r.meta != null && !isNaN(Number(r.meta))) mtM[b] = Number(r.meta);
+    }
+    obj.instagram[monthKey] = igM;
+    obj.meta[monthKey] = mtM;
+    const r = await onSave(obj);
+    setSaving(false); setOk(r !== false);
+  };
+  return (
+    <div className="no-print" style={{ ...panel, marginBottom: 16, borderLeft: `3px solid ${BRAND}` }}>
+      <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>✏️ Editar competencia · {monthLabel(monthKey)} <span style={{ color: "#8aa0bf", fontWeight: 400 }}>(seguidores desde Meta Business Suite)</span></div>
+      <div style={{ overflowX: "auto" }}>
+        <table style={{ ...tableStyle, background: "transparent" }}>
+          <thead><tr><th style={th}>Marca</th><th style={th}>Seguidores IG</th><th style={th}>Seguidores Meta</th><th style={th}></th></tr></thead>
+          <tbody>
+            {rows.map((r, i) => (
+              <tr key={i}>
+                <td style={td}><input value={r.brand} onChange={(e) => upd(i, "brand", e.target.value)} style={inp} placeholder="Marca" /></td>
+                <td style={td}><input value={r.ig} onChange={(e) => upd(i, "ig", e.target.value)} style={inp} inputMode="numeric" placeholder="—" /></td>
+                <td style={td}><input value={r.meta} onChange={(e) => upd(i, "meta", e.target.value)} style={inp} inputMode="numeric" placeholder="—" /></td>
+                <td style={td}><button onClick={() => setRows((rs) => rs.filter((_, idx) => idx !== i))} style={{ ...miniBtn, padding: "4px 8px" }}>✕</button></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap", alignItems: "center" }}>
+        <button onClick={() => setRows((rs) => [...rs, { brand: "", ig: "", meta: "" }])} style={miniBtn}>+ Agregar marca</button>
+        <button disabled={saving} onClick={save} style={{ ...miniBtn, background: BRAND, color: "#fff", border: "none" }}>{saving ? "Guardando…" : "Guardar competencia"}</button>
+        {ok && <span style={{ color: "#4ade80", fontSize: 13 }}>✓ Guardado</span>}
+      </div>
+    </div>
+  );
+}
+
 // ---------------- Page ----------------
 export default function Page() {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [sel, setSel] = useState(null);
+
+  // Modo edición + overrides compartidos (servidor).
+  const [server, setServer] = useState({ conclusions: {}, competencia: null, kv: false });
+  const [editParam, setEditParam] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [editPass, setEditPass] = useState("");
+  const [passInput, setPassInput] = useState("");
+  const [passMsg, setPassMsg] = useState("");
 
   const load = useCallback(async () => {
     try {
@@ -429,11 +514,59 @@ export default function Page() {
     }
   }, []);
 
+  const loadOverrides = useCallback(async () => {
+    try {
+      const res = await fetch("/api/overrides", { cache: "no-store" });
+      const j = await res.json();
+      setServer({ conclusions: j.conclusions || {}, competencia: j.competencia || null, kv: !!j.kv });
+    } catch (_) {}
+  }, []);
+
   useEffect(() => {
     load();
+    loadOverrides();
     const id = setInterval(load, REFRESH_MS);
     return () => clearInterval(id);
-  }, [load]);
+  }, [load, loadOverrides]);
+
+  // ?edit en la URL activa la barra de modo edición.
+  useEffect(() => {
+    try { setEditParam(new URLSearchParams(window.location.search).has("edit")); } catch (_) {}
+  }, []);
+
+  const unlock = async () => {
+    try {
+      const res = await fetch("/api/overrides", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "check", password: passInput }) });
+      const j = await res.json();
+      if (res.ok && j.ok) { setEditMode(true); setEditPass(passInput); setPassMsg(""); }
+      else setPassMsg(j.error || "Clave incorrecta");
+    } catch (e) { setPassMsg(String(e.message || e)); }
+  };
+
+  const saveConclusion = useCallback(async (id, text) => {
+    const res = await fetch("/api/overrides", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ password: editPass, type: "conclusion", key: id, value: text }) });
+    if (res.ok) setServer((s) => ({ ...s, conclusions: { ...s.conclusions, [id]: text } }));
+    else { const j = await res.json().catch(() => ({})); alert("No se pudo guardar: " + (j.error || res.status)); }
+  }, [editPass]);
+
+  const resetConclusion = useCallback(async (id) => {
+    const res = await fetch("/api/overrides", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ password: editPass, type: "conclusion", key: id, value: "" }) });
+    if (res.ok) setServer((s) => { const c = { ...s.conclusions }; delete c[id]; return { ...s, conclusions: c }; });
+  }, [editPass]);
+
+  const saveCompetencia = useCallback(async (obj) => {
+    const res = await fetch("/api/overrides", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ password: editPass, type: "competencia", value: obj }) });
+    if (res.ok) { setServer((s) => ({ ...s, competencia: obj })); return true; }
+    const j = await res.json().catch(() => ({})); alert("No se pudo guardar: " + (j.error || res.status)); return false;
+  }, [editPass]);
+
+  const editCtxValue = useMemo(() => ({
+    kv: server.kv,
+    canEdit: editMode,
+    getOverride: (id) => server.conclusions?.[id] ?? null,
+    save: saveConclusion,
+    reset: resetConclusion,
+  }), [server.kv, server.conclusions, editMode, saveConclusion, resetConclusion]);
 
   const months = data?.months || [];
   // Selecciona por defecto el último mes con datos.
@@ -516,16 +649,18 @@ export default function Page() {
     return { cur, prev, followers, fPrev, best, series, hasMonth: !!cur, connected: !!api };
   }, [data, sel, prevKey, months]);
 
-  // --- Competencia (manual) ---
+  // --- Competencia (editable; servidor tiene prioridad sobre el seed manual) ---
+  const compSource = server.competencia || data?.manual?.competencia || null;
   const comp = useMemo(() => {
-    const m = data?.manual?.competencia;
+    const m = compSource;
     if (!m) return null;
     return {
+      source: m,
       instagram: competenciaRows(m.instagram, sel, prevKey),
       meta: competenciaRows(m.meta, sel, prevKey),
       hasMonth: !!(m.instagram?.[sel] || m.meta?.[sel]),
     };
-  }, [data, sel, prevKey]);
+  }, [compSource, sel, prevKey]);
 
   // --- Email (agregado por mes desde campañas) ---
   const emailAgg = useMemo(() => {
@@ -589,15 +724,39 @@ export default function Page() {
   const selStyle = { background: "#0b1220", color: "#e6edf6", border: "1px solid #1f2b45", borderRadius: 8, padding: "8px 12px", fontSize: 14 };
 
   return (
+   <EditCtx.Provider value={editCtxValue}>
     <main style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 20px 80px" }}>
       <div style={{ height: 5, background: `linear-gradient(90deg, ${BRAND}, ${BRAND_DARK})`, borderRadius: 6, marginBottom: 18 }} />
+
+      {/* BARRA DE MODO EDICIÓN (solo con ?edit en la URL) */}
+      {editParam && (
+        <div className="no-print" style={{ ...panel, marginBottom: 16, borderLeft: `3px solid ${BRAND}`, display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+          {editMode ? (
+            <>
+              <span style={{ fontWeight: 700, color: BRAND }}>🔓 Modo edición activo</span>
+              <span style={{ color: "#8aa0bf", fontSize: 13 }}>Edita conclusiones y competencia; el cliente verá la versión guardada.{!server.kv ? " ⚠️ Falta configurar Vercel KV: por ahora se guarda solo en este navegador." : ""}</span>
+              <button onClick={() => setEditMode(false)} style={{ ...miniBtn, marginLeft: "auto" }}>Salir de edición</button>
+            </>
+          ) : (
+            <>
+              <span style={{ fontWeight: 700 }}>🔒 Modo edición</span>
+              <input type="password" value={passInput} placeholder="Clave" onChange={(e) => setPassInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && unlock()} style={{ ...selStyle, padding: "7px 10px" }} />
+              <button onClick={unlock} style={{ ...miniBtn, background: BRAND, color: "#fff", border: "none" }}>Entrar</button>
+              {passMsg && <span style={{ color: "#ffb4c0", fontSize: 13 }}>{passMsg}</span>}
+            </>
+          )}
+        </div>
+      )}
       <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
-        <div>
-          <h1 style={{ margin: 0, fontSize: 25 }}>
-            <span style={{ color: BRAND }}>Ebema</span> · Informe de Redes
-          </h1>
-          <div style={{ color: "#8aa0bf", fontSize: 13, marginTop: 4 }}>
-            {loading ? "Cargando…" : data?.updatedAt ? `Actualizado: ${new Date(data.updatedAt).toLocaleString("es-CL")}${data?.stale ? " · última copia disponible" : ""}` : ""}
+        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+          <img src="/logo-ebema.png" alt="Ebema" style={{ height: 52, width: 52, objectFit: "contain", background: "#fff", borderRadius: 12, padding: 4 }} />
+          <div>
+            <h1 style={{ margin: 0, fontSize: 25 }}>
+              <span style={{ color: BRAND }}>Ebema</span> · Informe de Redes
+            </h1>
+            <div style={{ color: "#8aa0bf", fontSize: 13, marginTop: 4 }}>
+              {loading ? "Cargando…" : data?.updatedAt ? `Actualizado: ${new Date(data.updatedAt).toLocaleString("es-CL")}${data?.stale ? " · última copia disponible" : ""}` : ""}
+            </div>
           </div>
         </div>
         <div className="no-print" style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
@@ -827,12 +986,15 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
         </Section>
       )}
 
-      {/* COMPETENCIA (MANUAL) */}
-      {comp && (
-        <Section title={<span>🥊 Competencia <span style={manualBadge}>MANUAL</span></span>} subtitle="Seguidores de la competencia (Not Just Analytics / Meta Business Suite). Lo carga el CM a inicio de mes.">
-          {!comp.hasMonth ? (
-            <div style={alertBox}>⚠️ Faltan los datos de competencia de {monthLabel(sel)}. El CM debe cargarlos en <code>data/manual.json</code>.</div>
-          ) : (
+      {/* COMPETENCIA (editable por el CM; datos desde Meta Business Suite) */}
+      <Section title={<span>🥊 Competencia {editMode && <span style={chromeBadge}>EDITABLE</span>}</span>} subtitle="Seguidores de la competencia y su crecimiento mensual.">
+        {editMode && (
+          <CompetenciaEditor source={compSource} monthKey={sel} prevMonthKey={prevKey} onSave={saveCompetencia} />
+        )}
+        {!comp?.hasMonth ? (
+          <div style={alertBox}>⚠️ Aún sin datos de competencia para {monthLabel(sel)}.{editMode ? " Llena la tabla de arriba y guarda." : " Se cargan en modo edición (Meta Business Suite)."}</div>
+        ) : (
+          <>
             <div style={{ ...grid(380) }}>
               {[{ key: "instagram", label: "📸 Instagram" }, { key: "meta", label: "👍 Facebook / Meta" }].map((blk) => (
                 comp[blk.key]?.length > 0 && (
@@ -863,9 +1025,12 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
                 )
               ))}
             </div>
-          )}
-        </Section>
-      )}
+            <div style={{ color: "#5b6b84", fontSize: 12, marginTop: 14, fontStyle: "italic" }}>
+              Cambio en el tratamiento de datos: los resultados ahora se obtienen directamente desde <b>Meta Business Suite</b>.
+            </div>
+          </>
+        )}
+      </Section>
 
       {/* META ADS (PAID) */}
       <Section title="🎯 Meta Ads (paid)" subtitle="Conversaciones iniciadas, inversión y costo por resultado (CPR) por sucursal">
@@ -1165,9 +1330,9 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
         ) : !data?.errors?.whatsapp && <div style={{ color: "#8aa0bf", fontSize: 13 }}>Sin campañas de WhatsApp para {monthLabel(sel)}.</div>}
       </Section>
 
-      {/* PUNTOS DE MEJORA */}
-      {improvements.length > 0 && (
-        <Section title="🛠️ Puntos de mejora" subtitle="Qué optimizar este mes, detectado automáticamente a partir de las métricas">
+      {/* PUNTOS DE MEJORA (solo interno / modo edición) */}
+      {editMode && improvements.length > 0 && (
+        <Section title="🛠️ Puntos de mejora (interno)" subtitle="Solo visible en modo edición — no se muestra al cliente">
           <div style={grid(300)}>
             {improvements.map((it, i) => (
               <div key={i} style={{ ...panel, borderLeft: `3px solid ${toneColor[it.tone] || "#fbbf24"}` }}>
@@ -1198,8 +1363,9 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
       )}
 
       <footer style={{ marginTop: 50, color: "#5b6b84", fontSize: 12, textAlign: "center" }}>
-        Datos vía Meta Graph API (IG, FB, Meta Ads), Google Ads, GA4 y Brevo · LinkedIn y Competencia manuales · Ebema · Copywriters
+        Datos vía Meta Graph API (IG, FB, Meta Ads), Google Ads, GA4, Brevo y LinkedIn · Competencia desde Meta Business Suite · Ebema · Copywriters
       </footer>
     </main>
+   </EditCtx.Provider>
   );
 }
