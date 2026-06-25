@@ -770,7 +770,7 @@ export default function Page() {
             <button onClick={() => window.print()} style={{ background: "#f4f5f7", color: "#1a1a1a", border: "1px solid #e4e7ec", borderRadius: 10, padding: "9px 14px", cursor: "pointer", fontSize: 14 }}>🖨️ Exportar PDF</button>
             <button onClick={load} style={{ background: BRAND, color: "#fff", border: "none", borderRadius: 10, padding: "9px 16px", cursor: "pointer", fontSize: 14 }}>Actualizar</button>
           </div>
-          <img src="/logo-copylab.png" alt="Grupo CopyLab" title="Grupo CopyLab LATAM" style={{ height: 44, objectFit: "contain", filter: "brightness(0)" }} />
+          <img src="/logo-copylab.png" alt="Grupo CopyLab" title="Grupo CopyLab LATAM" style={{ height: 58, objectFit: "contain", filter: "brightness(0)" }} />
         </div>
       </header>
 
