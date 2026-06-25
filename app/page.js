@@ -827,14 +827,14 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
                   <LineChart data={igSeries}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e4e7ec" />
                     <XAxis dataKey="name" {...axis} /><YAxis {...axis} /><Tooltip {...tip} /><Legend />
-                    <Line type="monotone" dataKey="Alcance" stroke="#2563eb" strokeWidth={2} dot={false} />
+                    <Line type="monotone" dataKey="Alcance" stroke="#e11d48" strokeWidth={2} dot={false} />
                   </LineChart>
                 </ChartBox>
                 <ChartBox title="Evolución de interacciones">
                   <BarChart data={igSeries}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e4e7ec" />
                     <XAxis dataKey="name" {...axis} /><YAxis {...axis} /><Tooltip {...tip} />
-                    <Bar dataKey="Interacciones" fill="#7c3aed" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="Interacciones" fill="#e11d48" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ChartBox>
               </div>
@@ -887,14 +887,14 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
                   <LineChart data={fbSeries}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e4e7ec" />
                     <XAxis dataKey="name" {...axis} /><YAxis {...axis} /><Tooltip {...tip} /><Legend />
-                    <Line type="monotone" dataKey="Visualizaciones" stroke="#2563eb" strokeWidth={2} dot={false} />
+                    <Line type="monotone" dataKey="Visualizaciones" stroke="#e11d48" strokeWidth={2} dot={false} />
                   </LineChart>
                 </ChartBox>
                 <ChartBox title="Evolución de interacciones">
                   <BarChart data={fbSeries}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e4e7ec" />
                     <XAxis dataKey="name" {...axis} /><YAxis {...axis} /><Tooltip {...tip} />
-                    <Bar dataKey="Interacciones" fill="#16a34a" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="Interacciones" fill="#e11d48" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ChartBox>
               </div>
@@ -949,14 +949,14 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
                     <LineChart data={liSeries}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#e4e7ec" />
                       <XAxis dataKey="name" {...axis} /><YAxis {...axis} /><Tooltip {...tip} /><Legend />
-                      <Line type="monotone" dataKey="Impresiones" stroke="#2563eb" strokeWidth={2} dot={false} />
+                      <Line type="monotone" dataKey="Impresiones" stroke="#e11d48" strokeWidth={2} dot={false} />
                     </LineChart>
                   </ChartBox>
                   <ChartBox title="Evolución de reacciones">
                     <BarChart data={liSeries}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#e4e7ec" />
                       <XAxis dataKey="name" {...axis} /><YAxis {...axis} /><Tooltip {...tip} />
-                      <Bar dataKey="Reacciones" fill="#16a34a" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="Reacciones" fill="#e11d48" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ChartBox>
                 </div>
@@ -1055,14 +1055,14 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
                   <BarChart data={adsSeries}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e4e7ec" />
                     <XAxis dataKey="name" {...axis} /><YAxis {...axis} /><Tooltip {...tip} />
-                    <Bar dataKey="Conversaciones" fill="#16a34a" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="Conversaciones" fill="#e11d48" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ChartBox>
                 <ChartBox title="Costo por conversación (CPR)">
                   <LineChart data={adsSeries}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e4e7ec" />
                     <XAxis dataKey="name" {...axis} /><YAxis {...axis} /><Tooltip {...tip} formatter={(v) => fmtMoney(v)} />
-                    <Line type="monotone" dataKey="CPR" stroke="#d97706" strokeWidth={2} dot={false} />
+                    <Line type="monotone" dataKey="CPR" stroke="#e11d48" strokeWidth={2} dot={false} />
                   </LineChart>
                 </ChartBox>
               </div>
@@ -1114,14 +1114,14 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
                   <BarChart data={gadsSeries}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e4e7ec" />
                     <XAxis dataKey="name" {...axis} /><YAxis {...axis} /><Tooltip {...tip} />
-                    <Bar dataKey="Conversiones" fill="#16a34a" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="Conversiones" fill="#e11d48" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ChartBox>
                 <ChartBox title="Costo por conversión">
                   <LineChart data={gadsSeries}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e4e7ec" />
                     <XAxis dataKey="name" {...axis} /><YAxis {...axis} /><Tooltip {...tip} formatter={(v) => fmtMoney(v)} />
-                    <Line type="monotone" dataKey="Costo/conv." stroke="#d97706" strokeWidth={2} dot={false} />
+                    <Line type="monotone" dataKey="Costo/conv." stroke="#e11d48" strokeWidth={2} dot={false} />
                   </LineChart>
                 </ChartBox>
               </div>
@@ -1193,14 +1193,14 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
                   <LineChart data={ga4Series}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e4e7ec" />
                     <XAxis dataKey="name" {...axis} /><YAxis {...axis} /><Tooltip {...tip} /><Legend />
-                    <Line type="monotone" dataKey="Usuarios" stroke="#7c3aed" strokeWidth={2} dot={false} />
+                    <Line type="monotone" dataKey="Usuarios" stroke="#e11d48" strokeWidth={2} dot={false} />
                   </LineChart>
                 </ChartBox>
                 <ChartBox title="Eventos clave por mes">
                   <BarChart data={ga4Series}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e4e7ec" />
                     <XAxis dataKey="name" {...axis} /><YAxis {...axis} /><Tooltip {...tip} />
-                    <Bar dataKey="Eventos clave" fill="#16a34a" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="Eventos clave" fill="#e11d48" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ChartBox>
               </div>
@@ -1248,8 +1248,8 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
                   <LineChart data={emailSeries}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e4e7ec" />
                     <XAxis dataKey="name" {...axis} /><YAxis {...axis} unit="%" /><Tooltip {...tip} /><Legend />
-                    <Line type="monotone" dataKey="Open Rate" stroke="#16a34a" strokeWidth={2} dot={false} />
-                    <Line type="monotone" dataKey="CTOR" stroke="#2563eb" strokeWidth={2} dot={false} />
+                    <Line type="monotone" dataKey="Open Rate" stroke="#e11d48" strokeWidth={2} dot={false} />
+                    <Line type="monotone" dataKey="CTOR" stroke="#334155" strokeWidth={2} dot={false} />
                   </LineChart>
                 </ChartBox>
               </div>
@@ -1300,8 +1300,8 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
                   <LineChart data={waSeries}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e4e7ec" />
                     <XAxis dataKey="name" {...axis} /><YAxis {...axis} unit="%" /><Tooltip {...tip} /><Legend />
-                    <Line type="monotone" dataKey="Entrega" stroke="#16a34a" strokeWidth={2} dot={false} />
-                    <Line type="monotone" dataKey="Leído" stroke="#2563eb" strokeWidth={2} dot={false} />
+                    <Line type="monotone" dataKey="Entrega" stroke="#e11d48" strokeWidth={2} dot={false} />
+                    <Line type="monotone" dataKey="Leído" stroke="#334155" strokeWidth={2} dot={false} />
                   </LineChart>
                 </ChartBox>
               </div>
