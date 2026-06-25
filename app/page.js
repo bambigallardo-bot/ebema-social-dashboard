@@ -20,7 +20,7 @@ import {
 const REFRESH_MS = 300000; // 5 min
 const BRAND = "#e11d48"; // rojo de marca (personalización Ebema)
 const BRAND_DARK = "#9f1239";
-const COLORS = ["#fb7185", "#60a5fa", "#4ade80", "#a78bfa", "#fbbf24", "#22d3ee", "#fb923c", "#94a3b8"];
+const COLORS = ["#e11d48", "#2563eb", "#16a34a", "#7c3aed", "#d97706", "#0891b2", "#ea580c", "#64748b"];
 
 const fmt = (n) => (typeof n === "number" ? n.toLocaleString("es-CL") : n ?? "—");
 const fmtPct = (n) => (typeof n === "number" ? `${n}%`.replace(".", ",") : "—");
@@ -56,14 +56,14 @@ function delta(cur, prev) {
 // ---------------- UI helpers ----------------
 function Card({ label, value, accent, change }) {
   const arrow = change ? (change.dir > 0 ? "▲" : change.dir < 0 ? "▼" : "▬") : null;
-  const color = change ? (change.dir > 0 ? "#4ade80" : change.dir < 0 ? "#f87171" : "#8aa0bf") : null;
+  const color = change ? (change.dir > 0 ? "#16a34a" : change.dir < 0 ? "#dc2626" : "#6b7280") : null;
   return (
-    <div style={{ background: "#131c30", border: "1px solid #1f2b45", borderRadius: 14, padding: "16px 18px", minWidth: 0 }}>
-      <div style={{ fontSize: 12, color: "#8aa0bf", marginBottom: 6 }}>{label}</div>
-      <div style={{ fontSize: 24, fontWeight: 700, color: accent || "#e6edf6" }}>{value}</div>
+    <div style={{ background: "#ffffff", border: "1px solid #e4e7ec", borderRadius: 14, padding: "16px 18px", minWidth: 0, boxShadow: "0 1px 2px rgba(16,24,40,0.04)" }}>
+      <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 6 }}>{label}</div>
+      <div style={{ fontSize: 24, fontWeight: 700, color: accent || "#1a1a1a" }}>{value}</div>
       {change && (
         <div style={{ fontSize: 12, color, marginTop: 4 }}>
-          {arrow} {Math.abs(change.pct).toLocaleString("es-CL")}% <span style={{ color: "#5b6b84" }}>vs mes ant.</span>
+          {arrow} {Math.abs(change.pct).toLocaleString("es-CL")}% <span style={{ color: "#9aa3af" }}>vs mes ant.</span>
         </div>
       )}
     </div>
@@ -74,24 +74,24 @@ function Section({ title, children, subtitle }) {
   return (
     <section style={{ marginTop: 44 }}>
       <h2 style={{ fontSize: 19, margin: 0 }}>{title}</h2>
-      {subtitle && <div style={{ color: "#8aa0bf", fontSize: 13, margin: "4px 0 0" }}>{subtitle}</div>}
+      {subtitle && <div style={{ color: "#6b7280", fontSize: 13, margin: "4px 0 0" }}>{subtitle}</div>}
       <div style={{ marginTop: 16 }}>{children}</div>
     </section>
   );
 }
 
 const grid = (min) => ({ display: "grid", gridTemplateColumns: `repeat(auto-fit, minmax(${min}px, 1fr))`, gap: 14 });
-const panel = { background: "#131c30", border: "1px solid #1f2b45", borderRadius: 14, padding: 16 };
-const tableStyle = { width: "100%", borderCollapse: "collapse", fontSize: 13, background: "#131c30", borderRadius: 14, overflow: "hidden" };
-const th = { textAlign: "left", padding: "10px 12px", color: "#8aa0bf", borderBottom: "1px solid #1f2b45", fontWeight: 600 };
-const td = { padding: "10px 12px", borderBottom: "1px solid #1f2b45" };
-const manualBadge = { fontSize: 11, fontWeight: 700, color: "#fbbf24", background: "rgba(251,191,36,0.12)", border: "1px solid rgba(251,191,36,0.4)", borderRadius: 6, padding: "2px 7px", marginLeft: 8, verticalAlign: "middle" };
-const chromeBadge = { fontSize: 11, fontWeight: 700, color: "#60a5fa", background: "rgba(96,165,250,0.12)", border: "1px solid rgba(96,165,250,0.4)", borderRadius: 6, padding: "2px 7px", marginLeft: 8, verticalAlign: "middle" };
-const autoBadge = { fontSize: 11, fontWeight: 700, color: "#4ade80", background: "rgba(74,222,128,0.12)", border: "1px solid rgba(74,222,128,0.4)", borderRadius: 6, padding: "2px 7px", marginLeft: 8, verticalAlign: "middle" };
-const alertBox = { background: "#3a2e12", border: "1px solid #6b521f", color: "#f5d98b", padding: "12px 16px", borderRadius: 12, fontSize: 13.5 };
-const toneColor = { good: "#4ade80", warn: "#fbbf24", bad: "#f87171", info: "#60a5fa" };
+const panel = { background: "#ffffff", border: "1px solid #e4e7ec", borderRadius: 14, padding: 16, boxShadow: "0 1px 2px rgba(16,24,40,0.04)" };
+const tableStyle = { width: "100%", borderCollapse: "collapse", fontSize: 13, background: "#ffffff", borderRadius: 14, overflow: "hidden", border: "1px solid #e4e7ec" };
+const th = { textAlign: "left", padding: "10px 12px", color: "#6b7280", borderBottom: "1px solid #e4e7ec", fontWeight: 600, background: "#f9fafb" };
+const td = { padding: "10px 12px", borderBottom: "1px solid #e4e7ec" };
+const manualBadge = { fontSize: 11, fontWeight: 700, color: "#d97706", background: "rgba(251,191,36,0.12)", border: "1px solid rgba(251,191,36,0.4)", borderRadius: 6, padding: "2px 7px", marginLeft: 8, verticalAlign: "middle" };
+const chromeBadge = { fontSize: 11, fontWeight: 700, color: "#2563eb", background: "rgba(96,165,250,0.12)", border: "1px solid rgba(96,165,250,0.4)", borderRadius: 6, padding: "2px 7px", marginLeft: 8, verticalAlign: "middle" };
+const autoBadge = { fontSize: 11, fontWeight: 700, color: "#16a34a", background: "rgba(74,222,128,0.12)", border: "1px solid rgba(74,222,128,0.4)", borderRadius: 6, padding: "2px 7px", marginLeft: 8, verticalAlign: "middle" };
+const alertBox = { background: "#fff8e6", border: "1px solid #f0d68a", color: "#92670a", padding: "12px 16px", borderRadius: 12, fontSize: 13.5 };
+const toneColor = { good: "#16a34a", warn: "#d97706", bad: "#dc2626", info: "#2563eb" };
 
-const miniBtn = { background: "#0b1220", color: "#cdd9ee", border: "1px solid #1f2b45", borderRadius: 8, padding: "5px 10px", cursor: "pointer", fontSize: 12 };
+const miniBtn = { background: "#f4f5f7", color: "#374151", border: "1px solid #e4e7ec", borderRadius: 8, padding: "5px 10px", cursor: "pointer", fontSize: 12 };
 
 // Conclusión auto-redactada, editable en modo edición. Override desde servidor (KV) o localStorage.
 function Conclusion({ id, text }) {
@@ -121,16 +121,16 @@ function Conclusion({ id, text }) {
     setSaving(false); setEditing(false);
   };
   return (
-    <div style={{ ...panel, borderLeft: `3px solid ${override ? BRAND : "#a78bfa"}`, marginTop: 18 }}>
+    <div style={{ ...panel, borderLeft: `3px solid ${override ? BRAND : "#7c3aed"}`, marginTop: 18 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, gap: 8 }}>
-        <div style={{ fontSize: 11, color: override ? BRAND : "#a78bfa", fontWeight: 600, letterSpacing: 0.4 }}>📝 CONCLUSIÓN {override ? "· EDITADA" : "AUTOMÁTICA"}</div>
+        <div style={{ fontSize: 11, color: override ? BRAND : "#7c3aed", fontWeight: 600, letterSpacing: 0.4 }}>📝 CONCLUSIÓN {override ? "· EDITADA" : "AUTOMÁTICA"}</div>
         {ctx.canEdit && !editing && (
           <button className="no-print" onClick={() => { setDraft(shown); setEditing(true); }} style={miniBtn}>✏️ Editar</button>
         )}
       </div>
       {editing ? (
         <div className="no-print">
-          <textarea value={draft} onChange={(e) => setDraft(e.target.value)} rows={5} style={{ width: "100%", boxSizing: "border-box", background: "#0b1220", color: "#e6edf6", border: "1px solid #1f2b45", borderRadius: 8, padding: 10, fontSize: 14, fontFamily: "inherit", lineHeight: 1.5 }} />
+          <textarea value={draft} onChange={(e) => setDraft(e.target.value)} rows={5} style={{ width: "100%", boxSizing: "border-box", background: "#f4f5f7", color: "#1a1a1a", border: "1px solid #e4e7ec", borderRadius: 8, padding: 10, fontSize: 14, fontFamily: "inherit", lineHeight: 1.5 }} />
           <div style={{ display: "flex", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
             <button disabled={saving} onClick={doSave} style={{ ...miniBtn, background: BRAND, color: "#fff", border: "none" }}>{saving ? "Guardando…" : "Guardar"}</button>
             <button disabled={saving} onClick={doReset} style={miniBtn}>Restaurar automática</button>
@@ -138,7 +138,7 @@ function Conclusion({ id, text }) {
           </div>
         </div>
       ) : (
-        <div style={{ fontSize: 14.5, lineHeight: 1.55, color: "#dbe5f3", whiteSpace: "pre-wrap" }}>{shown}</div>
+        <div style={{ fontSize: 14.5, lineHeight: 1.55, color: "#1a1a1a", whiteSpace: "pre-wrap" }}>{shown}</div>
       )}
     </div>
   );
@@ -147,7 +147,7 @@ function Conclusion({ id, text }) {
 function ChartBox({ title, children }) {
   return (
     <div>
-      <div style={{ fontSize: 13, color: "#8aa0bf", marginBottom: 8 }}>{title}</div>
+      <div style={{ fontSize: 13, color: "#6b7280", marginBottom: 8 }}>{title}</div>
       <div style={{ ...panel, height: 260 }}>
         <ResponsiveContainer width="100%" height="100%">{children}</ResponsiveContainer>
       </div>
@@ -155,8 +155,8 @@ function ChartBox({ title, children }) {
   );
 }
 
-const axis = { tick: { fill: "#8aa0bf", fontSize: 11 } };
-const tip = { contentStyle: { background: "#0b1220", border: "1px solid #1f2b45" } };
+const axis = { tick: { fill: "#6b7280", fontSize: 11 } };
+const tip = { contentStyle: { background: "#f4f5f7", border: "1px solid #e4e7ec" } };
 
 // ---------------- Conclusiones automáticas (voz del informe) ----------------
 const trend = (d, up = "aumentó", down = "disminuyó", flat = "se mantuvo estable") =>
@@ -442,7 +442,7 @@ function CompetenciaEditor({ source, monthKey, prevMonthKey, onSave }) {
   const [saving, setSaving] = useState(false);
   const [ok, setOk] = useState(false);
   const upd = (i, f, v) => setRows((rs) => rs.map((r, idx) => (idx === i ? { ...r, [f]: v } : r)));
-  const inp = { background: "#0b1220", color: "#e6edf6", border: "1px solid #1f2b45", borderRadius: 6, padding: "6px 8px", fontSize: 13, width: "100%", boxSizing: "border-box" };
+  const inp = { background: "#f4f5f7", color: "#1a1a1a", border: "1px solid #e4e7ec", borderRadius: 6, padding: "6px 8px", fontSize: 13, width: "100%", boxSizing: "border-box" };
   const save = async () => {
     setSaving(true); setOk(false);
     const obj = { instagram: { ...ig }, meta: { ...mt } };
@@ -460,7 +460,7 @@ function CompetenciaEditor({ source, monthKey, prevMonthKey, onSave }) {
   };
   return (
     <div className="no-print" style={{ ...panel, marginBottom: 16, borderLeft: `3px solid ${BRAND}` }}>
-      <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>✏️ Editar competencia · {monthLabel(monthKey)} <span style={{ color: "#8aa0bf", fontWeight: 400 }}>(seguidores desde Meta Business Suite)</span></div>
+      <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>✏️ Editar competencia · {monthLabel(monthKey)} <span style={{ color: "#6b7280", fontWeight: 400 }}>(seguidores desde Meta Business Suite)</span></div>
       <div style={{ overflowX: "auto" }}>
         <table style={{ ...tableStyle, background: "transparent" }}>
           <thead><tr><th style={th}>Marca</th><th style={th}>Seguidores IG</th><th style={th}>Seguidores Meta</th><th style={th}></th></tr></thead>
@@ -479,7 +479,7 @@ function CompetenciaEditor({ source, monthKey, prevMonthKey, onSave }) {
       <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap", alignItems: "center" }}>
         <button onClick={() => setRows((rs) => [...rs, { brand: "", ig: "", meta: "" }])} style={miniBtn}>+ Agregar marca</button>
         <button disabled={saving} onClick={save} style={{ ...miniBtn, background: BRAND, color: "#fff", border: "none" }}>{saving ? "Guardando…" : "Guardar competencia"}</button>
-        {ok && <span style={{ color: "#4ade80", fontSize: 13 }}>✓ Guardado</span>}
+        {ok && <span style={{ color: "#16a34a", fontSize: 13 }}>✓ Guardado</span>}
       </div>
     </div>
   );
@@ -721,7 +721,7 @@ export default function Page() {
   const gadsSeries = (gads?.series || []).map((x) => ({ name: monthLabel(x.key).split(" ")[0], Conversiones: x.conversions, "Costo/conv.": x.costPerConv }));
   const ga4Series = (ga4?.series || []).map((x) => ({ name: monthLabel(x.key).split(" ")[0], Usuarios: x.activeUsers, "Eventos clave": x.keyEvents }));
 
-  const selStyle = { background: "#0b1220", color: "#e6edf6", border: "1px solid #1f2b45", borderRadius: 8, padding: "8px 12px", fontSize: 14 };
+  const selStyle = { background: "#f4f5f7", color: "#1a1a1a", border: "1px solid #e4e7ec", borderRadius: 8, padding: "8px 12px", fontSize: 14 };
 
   return (
    <EditCtx.Provider value={editCtxValue}>
@@ -734,7 +734,7 @@ export default function Page() {
           {editMode ? (
             <>
               <span style={{ fontWeight: 700, color: BRAND }}>🔓 Modo edición activo</span>
-              <span style={{ color: "#8aa0bf", fontSize: 13 }}>Edita conclusiones y competencia; el cliente verá la versión guardada.{!server.kv ? " ⚠️ Falta crear el store Blob en Vercel: por ahora se guarda solo en este navegador." : ""}</span>
+              <span style={{ color: "#6b7280", fontSize: 13 }}>Edita conclusiones y competencia; el cliente verá la versión guardada.{!server.kv ? " ⚠️ Falta crear el store Blob en Vercel: por ahora se guarda solo en este navegador." : ""}</span>
               <button onClick={() => setEditMode(false)} style={{ ...miniBtn, marginLeft: "auto" }}>Salir de edición</button>
             </>
           ) : (
@@ -742,48 +742,51 @@ export default function Page() {
               <span style={{ fontWeight: 700 }}>🔒 Modo edición</span>
               <input type="password" value={passInput} placeholder="Clave" onChange={(e) => setPassInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && unlock()} style={{ ...selStyle, padding: "7px 10px" }} />
               <button onClick={unlock} style={{ ...miniBtn, background: BRAND, color: "#fff", border: "none" }}>Entrar</button>
-              {passMsg && <span style={{ color: "#ffb4c0", fontSize: 13 }}>{passMsg}</span>}
+              {passMsg && <span style={{ color: "#b42318", fontSize: 13 }}>{passMsg}</span>}
             </>
           )}
         </div>
       )}
       <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <img src="/logo-ebema.png" alt="Ebema" style={{ height: 52, width: 52, objectFit: "contain", background: "#fff", borderRadius: 12, padding: 4 }} />
+          <img src="/logo-ebema.png" alt="Ebema" style={{ height: 54, width: 54, objectFit: "contain" }} />
           <div>
-            <h1 style={{ margin: 0, fontSize: 25 }}>
+            <h1 style={{ margin: 0, fontSize: 25, color: "#111" }}>
               <span style={{ color: BRAND }}>Ebema</span> · Informe de Redes
             </h1>
-            <div style={{ color: "#8aa0bf", fontSize: 13, marginTop: 4 }}>
+            <div style={{ color: "#6b7280", fontSize: 13, marginTop: 4 }}>
               {loading ? "Cargando…" : data?.updatedAt ? `Actualizado: ${new Date(data.updatedAt).toLocaleString("es-CL")}${data?.stale ? " · última copia disponible" : ""}` : ""}
             </div>
           </div>
         </div>
-        <div className="no-print" style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-          {months.length > 0 && (
-            <select value={sel || ""} onChange={(e) => setSel(e.target.value)} style={selStyle}>
-              {[...months].reverse().map((k) => <option key={k} value={k}>{monthLabel(k)}</option>)}
-            </select>
-          )}
-          <button onClick={() => window.print()} style={{ background: "#0b1220", color: "#e6edf6", border: "1px solid #1f2b45", borderRadius: 10, padding: "9px 14px", cursor: "pointer", fontSize: 14 }}>🖨️ Exportar PDF</button>
-          <button onClick={load} style={{ background: BRAND, color: "#fff", border: "none", borderRadius: 10, padding: "9px 16px", cursor: "pointer", fontSize: 14 }}>Actualizar</button>
+        <div style={{ display: "flex", gap: 14, alignItems: "center", flexWrap: "wrap" }}>
+          <div className="no-print" style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+            {months.length > 0 && (
+              <select value={sel || ""} onChange={(e) => setSel(e.target.value)} style={selStyle}>
+                {[...months].reverse().map((k) => <option key={k} value={k}>{monthLabel(k)}</option>)}
+              </select>
+            )}
+            <button onClick={() => window.print()} style={{ background: "#f4f5f7", color: "#1a1a1a", border: "1px solid #e4e7ec", borderRadius: 10, padding: "9px 14px", cursor: "pointer", fontSize: 14 }}>🖨️ Exportar PDF</button>
+            <button onClick={load} style={{ background: BRAND, color: "#fff", border: "none", borderRadius: 10, padding: "9px 16px", cursor: "pointer", fontSize: 14 }}>Actualizar</button>
+          </div>
+          <img src="/logo-copylab.png" alt="Grupo CopyLab" title="Grupo CopyLab LATAM" style={{ height: 38, objectFit: "contain" }} />
         </div>
       </header>
 
-      {error && <div style={{ marginTop: 20, background: "#3b1620", border: "1px solid #6b2333", color: "#ffb4c0", padding: "12px 16px", borderRadius: 12 }}>{error}</div>}
+      {error && <div style={{ marginTop: 20, background: "#fdecef", border: "1px solid #f5c2cc", color: "#b42318", padding: "12px 16px", borderRadius: 12 }}>{error}</div>}
 
       {/* CÓMO LEER ESTE INFORME — Automático vs Manual */}
       <details className="no-print" style={{ ...panel, marginTop: 20, padding: 0 }}>
         <summary style={{ listStyle: "none", cursor: "pointer", padding: "14px 16px", fontWeight: 600, fontSize: 14 }}>
-          📋 Cómo leer este informe — <span style={{ color: "#4ade80" }}>Automático</span> vs <span style={{ color: "#fbbf24" }}>Manual</span>
+          📋 Cómo leer este informe — <span style={{ color: "#16a34a" }}>Automático</span> vs <span style={{ color: "#d97706" }}>Manual</span>
         </summary>
-        <div style={{ padding: "0 16px 16px", fontSize: 13.5, lineHeight: 1.5, color: "#cdd9ee" }}>
+        <div style={{ padding: "0 16px 16px", fontSize: 13.5, lineHeight: 1.5, color: "#374151" }}>
           <div style={{ marginBottom: 10 }}>
-            <div style={{ color: "#4ade80", fontWeight: 600, marginBottom: 4 }}>✅ AUTOMÁTICO — no necesitas tocar</div>
+            <div style={{ color: "#16a34a", fontWeight: 600, marginBottom: 4 }}>✅ AUTOMÁTICO — no necesitas tocar</div>
             KPIs del mes y comparativas vs. mes anterior · gráficos de tendencia (6 meses) · top keywords de Google · resultados Meta Ads por campaña/sucursal · GA4 y fuentes de tráfico · conclusiones redactadas por canal · <b>Plan del próximo mes</b> con acciones priorizadas e inversión sugerida.
           </div>
           <div>
-            <div style={{ color: "#fbbf24", fontWeight: 600, marginBottom: 4 }}>⚠️ MANUAL — revisar antes de enviar al cliente</div>
+            <div style={{ color: "#d97706", fontWeight: 600, marginBottom: 4 }}>⚠️ MANUAL — revisar antes de enviar al cliente</div>
 Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de LinkedIn → Análisis) y <b>Competencia</b> (Not Just Analytics) · leer las conclusiones IA y corregir si algo suena impreciso · validar el Plan del próximo mes según contexto del cliente (lanzamientos, eventos, cambios de mando que la IA no conoce) · exportar a PDF si el cliente pide formato formal.
           </div>
         </div>
@@ -794,7 +797,7 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
         <Section title={`🧠 Resumen ejecutivo · ${monthLabel(sel)}`} subtitle="Lo más destacado del mes, por canal">
           <div style={grid(280)}>
             {exec.map((it, i) => (
-              <div key={i} style={{ ...panel, borderLeft: "3px solid #60a5fa" }}>
+              <div key={i} style={{ ...panel, borderLeft: "3px solid #2563eb" }}>
                 <div style={{ fontSize: 14.5, lineHeight: 1.45 }}><span style={{ marginRight: 6 }}>{it.emoji}</span>{it.t}</div>
               </div>
             ))}
@@ -804,33 +807,33 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
 
       {/* INSTAGRAM */}
       <Section title="📸 Instagram (orgánico)" subtitle={ig?.username ? `@${ig.username}` : undefined}>
-        {data?.errors?.instagram && <div style={{ color: "#f5c97b", fontSize: 13, marginBottom: 10 }}>Instagram: {data.errors.instagram}</div>}
+        {data?.errors?.instagram && <div style={{ color: "#b45309", fontSize: 13, marginBottom: 10 }}>Instagram: {data.errors.instagram}</div>}
         {ig?.cur ? (
           <>
             <div style={grid(150)}>
-              <Card label="Seguidores" value={fmt(ig.followers)} accent="#a78bfa" />
+              <Card label="Seguidores" value={fmt(ig.followers)} accent="#7c3aed" />
               <Card label="Nuevos seguidores" value={fmt(ig.cur.newFollowers)} change={delta(ig.cur.newFollowers, ig.prev?.newFollowers)} />
               <Card label="Posts" value={fmt(ig.cur.posts)} change={delta(ig.cur.posts, ig.prev?.posts)} />
-              <Card label="Alcance" value={fmt(ig.cur.reach)} accent="#60a5fa" change={delta(ig.cur.reach, ig.prev?.reach)} />
+              <Card label="Alcance" value={fmt(ig.cur.reach)} accent="#2563eb" change={delta(ig.cur.reach, ig.prev?.reach)} />
               <Card label="Visualizaciones" value={fmt(ig.cur.views)} change={delta(ig.cur.views, ig.prev?.views)} />
               <Card label="Interacciones" value={fmt(ig.cur.interactions)} change={delta(ig.cur.interactions, ig.prev?.interactions)} />
-              <Card label="Clics a la web" value={fmt(ig.cur.webClicks)} accent="#4ade80" change={delta(ig.cur.webClicks, ig.prev?.webClicks)} />
+              <Card label="Clics a la web" value={fmt(ig.cur.webClicks)} accent="#16a34a" change={delta(ig.cur.webClicks, ig.prev?.webClicks)} />
               <Card label="Engagement" value={fmtPct(ig.cur.engagement)} change={delta(ig.cur.engagement, ig.prev?.engagement)} />
             </div>
             {igSeries.length > 1 && (
               <div style={{ ...grid(320), marginTop: 16 }}>
                 <ChartBox title="Evolución de alcance">
                   <LineChart data={igSeries}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1f2b45" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e4e7ec" />
                     <XAxis dataKey="name" {...axis} /><YAxis {...axis} /><Tooltip {...tip} /><Legend />
-                    <Line type="monotone" dataKey="Alcance" stroke="#60a5fa" strokeWidth={2} dot={false} />
+                    <Line type="monotone" dataKey="Alcance" stroke="#2563eb" strokeWidth={2} dot={false} />
                   </LineChart>
                 </ChartBox>
                 <ChartBox title="Evolución de interacciones">
                   <BarChart data={igSeries}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1f2b45" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e4e7ec" />
                     <XAxis dataKey="name" {...axis} /><YAxis {...axis} /><Tooltip {...tip} />
-                    <Bar dataKey="Interacciones" fill="#a78bfa" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="Interacciones" fill="#7c3aed" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ChartBox>
               </div>
@@ -844,11 +847,11 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
                     <tbody>
                       {ig.best.map((p, i) => (
                         <tr key={p.id}>
-                          <td style={{ ...td, color: "#fbbf24", fontWeight: 700 }}>{i + 1}</td>
-                          <td style={td}><a href={p.permalink} target="_blank" rel="noreferrer" style={{ color: "#cdd9ee" }}>{p.caption || "(sin texto)"}</a></td>
+                          <td style={{ ...td, color: "#d97706", fontWeight: 700 }}>{i + 1}</td>
+                          <td style={td}><a href={p.permalink} target="_blank" rel="noreferrer" style={{ color: "#374151" }}>{p.caption || "(sin texto)"}</a></td>
                           <td style={td}>{p.type}</td>
                           <td style={td}>{fmtDate(p.date)}</td>
-                          <td style={{ ...td, color: "#60a5fa", fontWeight: 600 }}>{fmt(p.reach)}</td>
+                          <td style={{ ...td, color: "#2563eb", fontWeight: 600 }}>{fmt(p.reach)}</td>
                           <td style={td}>{fmt(p.likes)}</td>
                           <td style={td}>{fmt(p.comments)}</td>
                         </tr>
@@ -860,37 +863,37 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
             )}
             <Conclusion id={`ig-${sel}`} text={igConclusion(sel, ig.cur, ig.prev, ig.followers)} />
           </>
-        ) : !data?.errors?.instagram && <div style={{ color: "#8aa0bf", fontSize: 13 }}>Sin datos de Instagram para {monthLabel(sel)}.</div>}
+        ) : !data?.errors?.instagram && <div style={{ color: "#6b7280", fontSize: 13 }}>Sin datos de Instagram para {monthLabel(sel)}.</div>}
       </Section>
 
       {/* FACEBOOK */}
       <Section title="👍 Facebook / Meta (orgánico)">
-        {data?.errors?.facebook && <div style={{ color: "#f5c97b", fontSize: 13, marginBottom: 10 }}>Facebook: {data.errors.facebook}</div>}
+        {data?.errors?.facebook && <div style={{ color: "#b45309", fontSize: 13, marginBottom: 10 }}>Facebook: {data.errors.facebook}</div>}
         {fb?.cur ? (
           <>
             <div style={grid(150)}>
-              <Card label="Seguidores" value={fmt(fb.followers)} accent="#a78bfa" />
+              <Card label="Seguidores" value={fmt(fb.followers)} accent="#7c3aed" />
               <Card label="Nuevos seguidores" value={fmt(fb.cur.fanAdds)} change={delta(fb.cur.fanAdds, fb.prev?.fanAdds)} />
               <Card label="Posts" value={fmt(fb.cur.posts)} change={delta(fb.cur.posts, fb.prev?.posts)} />
-              <Card label="Espectadores (alcance)" value={fmt(fb.cur.reach)} accent="#60a5fa" change={delta(fb.cur.reach, fb.prev?.reach)} />
+              <Card label="Espectadores (alcance)" value={fmt(fb.cur.reach)} accent="#2563eb" change={delta(fb.cur.reach, fb.prev?.reach)} />
               <Card label="Visualizaciones" value={fmt(fb.cur.impressions)} change={delta(fb.cur.impressions, fb.prev?.impressions)} />
               <Card label="Interacciones" value={fmt(fb.cur.engagement)} change={delta(fb.cur.engagement, fb.prev?.engagement)} />
-              <Card label="Visitas al perfil" value={fmt(fb.cur.profileViews)} accent="#4ade80" change={delta(fb.cur.profileViews, fb.prev?.profileViews)} />
+              <Card label="Visitas al perfil" value={fmt(fb.cur.profileViews)} accent="#16a34a" change={delta(fb.cur.profileViews, fb.prev?.profileViews)} />
             </div>
             {fbSeries.length > 1 && (
               <div style={{ ...grid(320), marginTop: 16 }}>
                 <ChartBox title="Evolución de visualizaciones">
                   <LineChart data={fbSeries}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1f2b45" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e4e7ec" />
                     <XAxis dataKey="name" {...axis} /><YAxis {...axis} /><Tooltip {...tip} /><Legend />
-                    <Line type="monotone" dataKey="Visualizaciones" stroke="#60a5fa" strokeWidth={2} dot={false} />
+                    <Line type="monotone" dataKey="Visualizaciones" stroke="#2563eb" strokeWidth={2} dot={false} />
                   </LineChart>
                 </ChartBox>
                 <ChartBox title="Evolución de interacciones">
                   <BarChart data={fbSeries}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1f2b45" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e4e7ec" />
                     <XAxis dataKey="name" {...axis} /><YAxis {...axis} /><Tooltip {...tip} />
-                    <Bar dataKey="Interacciones" fill="#4ade80" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="Interacciones" fill="#16a34a" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ChartBox>
               </div>
@@ -904,10 +907,10 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
                     <tbody>
                       {fb.best.map((p, i) => (
                         <tr key={p.id}>
-                          <td style={{ ...td, color: "#fbbf24", fontWeight: 700 }}>{i + 1}</td>
-                          <td style={td}><a href={p.permalink} target="_blank" rel="noreferrer" style={{ color: "#cdd9ee" }}>{p.message || "(sin texto)"}</a></td>
+                          <td style={{ ...td, color: "#d97706", fontWeight: 700 }}>{i + 1}</td>
+                          <td style={td}><a href={p.permalink} target="_blank" rel="noreferrer" style={{ color: "#374151" }}>{p.message || "(sin texto)"}</a></td>
                           <td style={td}>{fmtDate(p.date)}</td>
-                          <td style={{ ...td, color: "#60a5fa", fontWeight: 600 }}>{fmt(p.reach)}</td>
+                          <td style={{ ...td, color: "#2563eb", fontWeight: 600 }}>{fmt(p.reach)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -917,13 +920,13 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
             )}
             <Conclusion id={`fb-${sel}`} text={fbConclusion(sel, fb.cur, fb.prev, fb.followers)} />
           </>
-        ) : !data?.errors?.facebook && <div style={{ color: "#8aa0bf", fontSize: 13 }}>Sin datos de Facebook para {monthLabel(sel)}.</div>}
+        ) : !data?.errors?.facebook && <div style={{ color: "#6b7280", fontSize: 13 }}>Sin datos de Facebook para {monthLabel(sel)}.</div>}
       </Section>
 
       {/* LINKEDIN (MANUAL) */}
       {li && (
         <Section title={<span>💼 LinkedIn <span style={li.connected ? autoBadge : chromeBadge}>{li.connected ? "AUTO · API" : "DATOS DE EJEMPLO"}</span></span>} subtitle="Conectado por la API de LinkedIn (en vivo). Solo Competencia queda manual.">
-          {data?.errors?.linkedin && <div style={{ color: "#f5c97b", fontSize: 13, marginBottom: 10 }}>LinkedIn: {data.errors.linkedin}</div>}
+          {data?.errors?.linkedin && <div style={{ color: "#b45309", fontSize: 13, marginBottom: 10 }}>LinkedIn: {data.errors.linkedin}</div>}
           {!li.connected && (
             <div style={{ ...alertBox, marginBottom: 12 }}>ℹ️ Aún sin token de LinkedIn: mostrando datos de ejemplo. Para datos en vivo, configura <code>LINKEDIN_ACCESS_TOKEN</code> y <code>LINKEDIN_ORG_ID</code> (pasos en el README).</div>
           )}
@@ -932,27 +935,27 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
           ) : (
             <>
               <div style={grid(150)}>
-                <Card label="Seguidores" value={fmt(li.followers)} accent="#a78bfa" change={delta(li.followers, li.fPrev)} />
+                <Card label="Seguidores" value={fmt(li.followers)} accent="#7c3aed" change={delta(li.followers, li.fPrev)} />
                 <Card label="Adquiridos" value={fmt(li.cur.acquired)} change={delta(li.cur.acquired, li.prev?.acquired)} />
-                <Card label="Impresiones" value={fmt(li.cur.impressions)} accent="#60a5fa" change={delta(li.cur.impressions, li.prev?.impressions)} />
+                <Card label="Impresiones" value={fmt(li.cur.impressions)} accent="#2563eb" change={delta(li.cur.impressions, li.prev?.impressions)} />
                 <Card label="Visualizaciones" value={fmt(li.cur.views)} change={delta(li.cur.views, li.prev?.views)} />
-                <Card label="Reacciones" value={fmt(li.cur.reactions)} accent="#4ade80" change={delta(li.cur.reactions, li.prev?.reactions)} />
+                <Card label="Reacciones" value={fmt(li.cur.reactions)} accent="#16a34a" change={delta(li.cur.reactions, li.prev?.reactions)} />
                 <Card label="Engagement" value={fmtPct(li.cur.engagement)} change={delta(li.cur.engagement, li.prev?.engagement)} />
               </div>
               {liSeries.length > 1 && (
                 <div style={{ ...grid(320), marginTop: 16 }}>
                   <ChartBox title="Evolución de impresiones">
                     <LineChart data={liSeries}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#1f2b45" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e4e7ec" />
                       <XAxis dataKey="name" {...axis} /><YAxis {...axis} /><Tooltip {...tip} /><Legend />
-                      <Line type="monotone" dataKey="Impresiones" stroke="#60a5fa" strokeWidth={2} dot={false} />
+                      <Line type="monotone" dataKey="Impresiones" stroke="#2563eb" strokeWidth={2} dot={false} />
                     </LineChart>
                   </ChartBox>
                   <ChartBox title="Evolución de reacciones">
                     <BarChart data={liSeries}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#1f2b45" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e4e7ec" />
                       <XAxis dataKey="name" {...axis} /><YAxis {...axis} /><Tooltip {...tip} />
-                      <Bar dataKey="Reacciones" fill="#4ade80" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="Reacciones" fill="#16a34a" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ChartBox>
                 </div>
@@ -966,10 +969,10 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
                       <tbody>
                         {li.best.map((p, i) => (
                           <tr key={i}>
-                            <td style={{ ...td, color: "#fbbf24", fontWeight: 700 }}>{i + 1}</td>
+                            <td style={{ ...td, color: "#d97706", fontWeight: 700 }}>{i + 1}</td>
                             <td style={td}>{p.label}</td>
                             <td style={td}>{p.date}</td>
-                            <td style={{ ...td, color: "#60a5fa", fontWeight: 600 }}>{fmt(p.impressions)}</td>
+                            <td style={{ ...td, color: "#2563eb", fontWeight: 600 }}>{fmt(p.impressions)}</td>
                             <td style={td}>{fmt(p.reactions)}</td>
                             <td style={td}>{fmt(p.clicks)}</td>
                             <td style={td}>{fmt(p.newFollowers)}</td>
@@ -1008,10 +1011,10 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
                             const mine = r.brand.toUpperCase().includes("EBEMA");
                             return (
                               <tr key={r.brand} style={mine ? { background: "rgba(225,29,72,0.12)" } : undefined}>
-                                <td style={{ ...td, fontWeight: mine ? 700 : 400, color: mine ? BRAND : "#e6edf6" }}>{r.brand}</td>
+                                <td style={{ ...td, fontWeight: mine ? 700 : 400, color: mine ? BRAND : "#1a1a1a" }}>{r.brand}</td>
                                 <td style={td}>{fmt(r.prev)}</td>
                                 <td style={{ ...td, fontWeight: 600 }}>{fmt(r.cur)}</td>
-                                <td style={{ ...td, color: r.growth == null ? "#8aa0bf" : r.growth >= 0 ? "#4ade80" : "#f87171", fontWeight: 600 }}>
+                                <td style={{ ...td, color: r.growth == null ? "#6b7280" : r.growth >= 0 ? "#16a34a" : "#dc2626", fontWeight: 600 }}>
                                   {r.growth == null ? "—" : `${r.growth >= 0 ? "▲" : "▼"} ${Math.abs(r.growth).toLocaleString("es-CL")}%`}
                                 </td>
                               </tr>
@@ -1025,7 +1028,7 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
                 )
               ))}
             </div>
-            <div style={{ color: "#5b6b84", fontSize: 12, marginTop: 14, fontStyle: "italic" }}>
+            <div style={{ color: "#9aa3af", fontSize: 12, marginTop: 14, fontStyle: "italic" }}>
               Cambio en el tratamiento de datos: los resultados ahora se obtienen directamente desde <b>Meta Business Suite</b>.
             </div>
           </>
@@ -1034,14 +1037,14 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
 
       {/* META ADS (PAID) */}
       <Section title="🎯 Meta Ads (paid)" subtitle="Conversaciones iniciadas, inversión y costo por resultado (CPR) por sucursal">
-        {data?.errors?.ads && <div style={{ color: "#f5c97b", fontSize: 13, marginBottom: 10 }}>Meta Ads: {data.errors.ads}</div>}
+        {data?.errors?.ads && <div style={{ color: "#b45309", fontSize: 13, marginBottom: 10 }}>Meta Ads: {data.errors.ads}</div>}
         {ads?.cur ? (
           <>
             <div style={grid(150)}>
-              <Card label="Inversión" value={fmtMoney(ads.cur.spend)} accent="#fbbf24" change={delta(ads.cur.spend, ads.prev?.spend)} />
-              <Card label="Conversaciones" value={fmt(ads.cur.conversations)} accent="#4ade80" change={delta(ads.cur.conversations, ads.prev?.conversations)} />
+              <Card label="Inversión" value={fmtMoney(ads.cur.spend)} accent="#d97706" change={delta(ads.cur.spend, ads.prev?.spend)} />
+              <Card label="Conversaciones" value={fmt(ads.cur.conversations)} accent="#16a34a" change={delta(ads.cur.conversations, ads.prev?.conversations)} />
               <Card label="CPR (costo/conv.)" value={fmtMoney(ads.cur.cpr)} change={delta(ads.cur.cpr, ads.prev?.cpr)} />
-              <Card label="Alcance" value={fmt(ads.cur.reach)} accent="#60a5fa" change={delta(ads.cur.reach, ads.prev?.reach)} />
+              <Card label="Alcance" value={fmt(ads.cur.reach)} accent="#2563eb" change={delta(ads.cur.reach, ads.prev?.reach)} />
               <Card label="Clics" value={fmt(ads.cur.clicks)} change={delta(ads.cur.clicks, ads.prev?.clicks)} />
               <Card label="CTR" value={fmtPct(ads.cur.ctr)} change={delta(ads.cur.ctr, ads.prev?.ctr)} />
             </div>
@@ -1049,16 +1052,16 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
               <div style={{ ...grid(320), marginTop: 16 }}>
                 <ChartBox title="Conversaciones por mes">
                   <BarChart data={adsSeries}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1f2b45" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e4e7ec" />
                     <XAxis dataKey="name" {...axis} /><YAxis {...axis} /><Tooltip {...tip} />
-                    <Bar dataKey="Conversaciones" fill="#4ade80" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="Conversaciones" fill="#16a34a" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ChartBox>
                 <ChartBox title="Costo por conversación (CPR)">
                   <LineChart data={adsSeries}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1f2b45" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e4e7ec" />
                     <XAxis dataKey="name" {...axis} /><YAxis {...axis} /><Tooltip {...tip} formatter={(v) => fmtMoney(v)} />
-                    <Line type="monotone" dataKey="CPR" stroke="#fbbf24" strokeWidth={2} dot={false} />
+                    <Line type="monotone" dataKey="CPR" stroke="#d97706" strokeWidth={2} dot={false} />
                   </LineChart>
                 </ChartBox>
               </div>
@@ -1073,7 +1076,7 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
                       {ads.cur.campaigns.map((c) => (
                         <tr key={c.id}>
                           <td style={td}>{c.name}</td>
-                          <td style={{ ...td, color: "#4ade80", fontWeight: 600 }}>{fmt(c.conversations)}</td>
+                          <td style={{ ...td, color: "#16a34a", fontWeight: 600 }}>{fmt(c.conversations)}</td>
                           <td style={td}>{fmtMoney(c.spend)}</td>
                           <td style={td}>{fmtMoney(c.cpr)}</td>
                           <td style={td}>{fmt(c.reach)}</td>
@@ -1088,19 +1091,19 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
             )}
             <Conclusion id={`ads-${sel}`} text={adsConclusion(sel, ads.cur, ads.prev, ads.currency)} />
           </>
-        ) : !data?.errors?.ads && <div style={{ color: "#8aa0bf", fontSize: 13 }}>Sin datos de Meta Ads para {monthLabel(sel)}.</div>}
+        ) : !data?.errors?.ads && <div style={{ color: "#6b7280", fontSize: 13 }}>Sin datos de Meta Ads para {monthLabel(sel)}.</div>}
       </Section>
 
       {/* GOOGLE ADS (PAID) */}
       <Section title="🔎 Google Ads (paid)" subtitle="Conversiones, CTR, inversión y top keywords del Search">
-        {data?.errors?.googleAds && <div style={{ color: "#f5c97b", fontSize: 13, marginBottom: 10 }}>Google Ads: {data.errors.googleAds}</div>}
+        {data?.errors?.googleAds && <div style={{ color: "#b45309", fontSize: 13, marginBottom: 10 }}>Google Ads: {data.errors.googleAds}</div>}
         {gads?.cur ? (
           <>
             <div style={grid(150)}>
-              <Card label="Inversión" value={fmtMoney(gads.cur.cost)} accent="#fbbf24" change={delta(gads.cur.cost, gads.prev?.cost)} />
-              <Card label="Conversiones" value={fmt(gads.cur.conversions)} accent="#4ade80" change={delta(gads.cur.conversions, gads.prev?.conversions)} />
+              <Card label="Inversión" value={fmtMoney(gads.cur.cost)} accent="#d97706" change={delta(gads.cur.cost, gads.prev?.cost)} />
+              <Card label="Conversiones" value={fmt(gads.cur.conversions)} accent="#16a34a" change={delta(gads.cur.conversions, gads.prev?.conversions)} />
               <Card label="Costo / conv." value={fmtMoney(gads.cur.costPerConv)} change={delta(gads.cur.costPerConv, gads.prev?.costPerConv)} />
-              <Card label="Clics" value={fmt(gads.cur.clicks)} accent="#60a5fa" change={delta(gads.cur.clicks, gads.prev?.clicks)} />
+              <Card label="Clics" value={fmt(gads.cur.clicks)} accent="#2563eb" change={delta(gads.cur.clicks, gads.prev?.clicks)} />
               <Card label="CTR" value={fmtPct(gads.cur.ctr)} change={delta(gads.cur.ctr, gads.prev?.ctr)} />
               <Card label="CPC" value={fmtMoney(gads.cur.cpc)} change={delta(gads.cur.cpc, gads.prev?.cpc)} />
             </div>
@@ -1108,16 +1111,16 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
               <div style={{ ...grid(320), marginTop: 16 }}>
                 <ChartBox title="Conversiones por mes">
                   <BarChart data={gadsSeries}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1f2b45" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e4e7ec" />
                     <XAxis dataKey="name" {...axis} /><YAxis {...axis} /><Tooltip {...tip} />
-                    <Bar dataKey="Conversiones" fill="#4ade80" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="Conversiones" fill="#16a34a" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ChartBox>
                 <ChartBox title="Costo por conversión">
                   <LineChart data={gadsSeries}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1f2b45" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e4e7ec" />
                     <XAxis dataKey="name" {...axis} /><YAxis {...axis} /><Tooltip {...tip} formatter={(v) => fmtMoney(v)} />
-                    <Line type="monotone" dataKey="Costo/conv." stroke="#fbbf24" strokeWidth={2} dot={false} />
+                    <Line type="monotone" dataKey="Costo/conv." stroke="#d97706" strokeWidth={2} dot={false} />
                   </LineChart>
                 </ChartBox>
               </div>
@@ -1132,7 +1135,7 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
                       {gads.keywords.map((k, i) => (
                         <tr key={i}>
                           <td style={td}>{k.text}</td>
-                          <td style={{ ...td, color: "#4ade80", fontWeight: 600 }}>{fmt(k.conversions)}</td>
+                          <td style={{ ...td, color: "#16a34a", fontWeight: 600 }}>{fmt(k.conversions)}</td>
                           <td style={td}>{fmt(k.clicks)}</td>
                           <td style={td}>{fmtPct(k.ctr)}</td>
                           <td style={td}>{fmtMoney(k.cost)}</td>
@@ -1153,7 +1156,7 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
                       {gads.campaigns.map((c, i) => (
                         <tr key={i}>
                           <td style={td}>{c.name}</td>
-                          <td style={{ ...td, color: "#4ade80", fontWeight: 600 }}>{fmt(c.conversions)}</td>
+                          <td style={{ ...td, color: "#16a34a", fontWeight: 600 }}>{fmt(c.conversions)}</td>
                           <td style={td}>{fmt(c.clicks)}</td>
                           <td style={td}>{fmtPct(c.ctr)}</td>
                           <td style={td}>{fmtMoney(c.costPerConv)}</td>
@@ -1167,19 +1170,19 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
             )}
             <Conclusion id={`gads-${sel}`} text={googleAdsConclusion(sel, gads.cur, gads.prev, gads.keywords?.[0])} />
           </>
-        ) : !data?.errors?.googleAds && <div style={{ color: "#8aa0bf", fontSize: 13 }}>Sin datos de Google Ads para {monthLabel(sel)}.</div>}
+        ) : !data?.errors?.googleAds && <div style={{ color: "#6b7280", fontSize: 13 }}>Sin datos de Google Ads para {monthLabel(sel)}.</div>}
       </Section>
 
       {/* GA4 */}
       <Section title="📊 Google Analytics (GA4)" subtitle="Rendimiento del sitio y fuentes de tráfico">
-        {data?.errors?.ga4 && <div style={{ color: "#f5c97b", fontSize: 13, marginBottom: 10 }}>GA4: {data.errors.ga4}</div>}
+        {data?.errors?.ga4 && <div style={{ color: "#b45309", fontSize: 13, marginBottom: 10 }}>GA4: {data.errors.ga4}</div>}
         {ga4?.cur ? (
           <>
             <div style={grid(150)}>
-              <Card label="Usuarios activos" value={fmt(ga4.cur.activeUsers)} accent="#a78bfa" change={delta(ga4.cur.activeUsers, ga4.prev?.activeUsers)} />
+              <Card label="Usuarios activos" value={fmt(ga4.cur.activeUsers)} accent="#7c3aed" change={delta(ga4.cur.activeUsers, ga4.prev?.activeUsers)} />
               <Card label="Sesiones" value={fmt(ga4.cur.sessions)} change={delta(ga4.cur.sessions, ga4.prev?.sessions)} />
               <Card label="Vistas" value={fmt(ga4.cur.views)} change={delta(ga4.cur.views, ga4.prev?.views)} />
-              <Card label="Eventos clave" value={fmt(ga4.cur.keyEvents)} accent="#4ade80" change={delta(ga4.cur.keyEvents, ga4.prev?.keyEvents)} />
+              <Card label="Eventos clave" value={fmt(ga4.cur.keyEvents)} accent="#16a34a" change={delta(ga4.cur.keyEvents, ga4.prev?.keyEvents)} />
               <Card label="Eventos totales" value={fmt(ga4.cur.events)} change={delta(ga4.cur.events, ga4.prev?.events)} />
               <Card label="Duración media" value={fmtDuration(ga4.cur.avgEngagementSec)} change={delta(ga4.cur.avgEngagementSec, ga4.prev?.avgEngagementSec)} />
             </div>
@@ -1187,16 +1190,16 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
               <div style={{ ...grid(320), marginTop: 16 }}>
                 <ChartBox title="Usuarios activos por mes">
                   <LineChart data={ga4Series}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1f2b45" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e4e7ec" />
                     <XAxis dataKey="name" {...axis} /><YAxis {...axis} /><Tooltip {...tip} /><Legend />
-                    <Line type="monotone" dataKey="Usuarios" stroke="#a78bfa" strokeWidth={2} dot={false} />
+                    <Line type="monotone" dataKey="Usuarios" stroke="#7c3aed" strokeWidth={2} dot={false} />
                   </LineChart>
                 </ChartBox>
                 <ChartBox title="Eventos clave por mes">
                   <BarChart data={ga4Series}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1f2b45" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e4e7ec" />
                     <XAxis dataKey="name" {...axis} /><YAxis {...axis} /><Tooltip {...tip} />
-                    <Bar dataKey="Eventos clave" fill="#4ade80" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="Eventos clave" fill="#16a34a" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ChartBox>
               </div>
@@ -1212,7 +1215,7 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
                         <tr key={i}>
                           <td style={td}>{c.channel}</td>
                           <td style={td}>{fmt(c.sessions)}</td>
-                          <td style={{ ...td, color: "#4ade80", fontWeight: 600 }}>{fmt(c.keyEvents)}</td>
+                          <td style={{ ...td, color: "#16a34a", fontWeight: 600 }}>{fmt(c.keyEvents)}</td>
                           <td style={td}>{fmtPct(c.sessions ? Math.round((c.keyEvents / c.sessions) * 1000) / 10 : 0)}</td>
                         </tr>
                       ))}
@@ -1223,29 +1226,29 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
             )}
             <Conclusion id={`ga4-${sel}`} text={ga4Conclusion(sel, ga4.cur, ga4.prev, ga4.channels?.[0])} />
           </>
-        ) : !data?.errors?.ga4 && <div style={{ color: "#8aa0bf", fontSize: 13 }}>Sin datos de GA4 para {monthLabel(sel)}.</div>}
+        ) : !data?.errors?.ga4 && <div style={{ color: "#6b7280", fontSize: 13 }}>Sin datos de GA4 para {monthLabel(sel)}.</div>}
       </Section>
 
       {/* EMAIL MARKETING */}
       <Section title="✉️ Email Marketing (Ebema Click)">
-        {data?.errors?.email && <div style={{ color: "#f5c97b", fontSize: 13, marginBottom: 10 }}>Email: {data.errors.email}</div>}
+        {data?.errors?.email && <div style={{ color: "#b45309", fontSize: 13, marginBottom: 10 }}>Email: {data.errors.email}</div>}
         {emailAgg?.cur ? (
           <>
             <div style={grid(150)}>
               <Card label="Entregados" value={fmt(emailAgg.cur.delivered)} change={delta(emailAgg.cur.delivered, emailAgg.prev?.delivered)} />
               <Card label="Aperturas" value={fmt(emailAgg.cur.opens)} change={delta(emailAgg.cur.opens, emailAgg.prev?.opens)} />
-              <Card label="Open Rate" value={fmtPct(emailAgg.cur.openRate)} accent="#4ade80" change={delta(emailAgg.cur.openRate, emailAgg.prev?.openRate)} />
-              <Card label="CTOR" value={fmtPct(emailAgg.cur.ctor)} accent="#60a5fa" change={delta(emailAgg.cur.ctor, emailAgg.prev?.ctor)} />
+              <Card label="Open Rate" value={fmtPct(emailAgg.cur.openRate)} accent="#16a34a" change={delta(emailAgg.cur.openRate, emailAgg.prev?.openRate)} />
+              <Card label="CTOR" value={fmtPct(emailAgg.cur.ctor)} accent="#2563eb" change={delta(emailAgg.cur.ctor, emailAgg.prev?.ctor)} />
               <Card label="Campañas" value={fmt(emailAgg.cur.list?.length)} />
             </div>
             {emailSeries.length > 1 && (
               <div style={{ ...grid(320), marginTop: 16 }}>
                 <ChartBox title="Open Rate y CTOR por mes">
                   <LineChart data={emailSeries}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1f2b45" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e4e7ec" />
                     <XAxis dataKey="name" {...axis} /><YAxis {...axis} unit="%" /><Tooltip {...tip} /><Legend />
-                    <Line type="monotone" dataKey="Open Rate" stroke="#4ade80" strokeWidth={2} dot={false} />
-                    <Line type="monotone" dataKey="CTOR" stroke="#60a5fa" strokeWidth={2} dot={false} />
+                    <Line type="monotone" dataKey="Open Rate" stroke="#16a34a" strokeWidth={2} dot={false} />
+                    <Line type="monotone" dataKey="CTOR" stroke="#2563eb" strokeWidth={2} dot={false} />
                   </LineChart>
                 </ChartBox>
               </div>
@@ -1262,7 +1265,7 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
                           <td style={td}>{c.name}</td>
                           <td style={td}>{fmtDate(c.date)}</td>
                           <td style={td}>{fmt(c.delivered)}</td>
-                          <td style={{ ...td, color: "#4ade80", fontWeight: 600 }}>{fmtPct(c.openRate)}</td>
+                          <td style={{ ...td, color: "#16a34a", fontWeight: 600 }}>{fmtPct(c.openRate)}</td>
                           <td style={td}>{fmtPct(c.clickRate)}</td>
                           <td style={td}>{fmtPct(c.ctor)}</td>
                         </tr>
@@ -1274,30 +1277,30 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
             )}
             <Conclusion id={`email-${sel}`} text={emailConclusion(sel, emailAgg.cur, emailAgg.prev, emailAgg.best)} />
           </>
-        ) : !data?.errors?.email && <div style={{ color: "#8aa0bf", fontSize: 13 }}>Sin campañas de email para {monthLabel(sel)}.</div>}
+        ) : !data?.errors?.email && <div style={{ color: "#6b7280", fontSize: 13 }}>Sin campañas de email para {monthLabel(sel)}.</div>}
       </Section>
 
       {/* WHATSAPP */}
       <Section title="💬 WhatsApp (Ebema Click)">
-        {data?.errors?.whatsapp && <div style={{ color: "#f5c97b", fontSize: 13, marginBottom: 10 }}>WhatsApp: {data.errors.whatsapp}</div>}
+        {data?.errors?.whatsapp && <div style={{ color: "#b45309", fontSize: 13, marginBottom: 10 }}>WhatsApp: {data.errors.whatsapp}</div>}
         {waAgg?.cur ? (
           <>
             <div style={grid(150)}>
               <Card label="Enviados" value={fmt(waAgg.cur.sent)} change={delta(waAgg.cur.sent, waAgg.prev?.sent)} />
               <Card label="Entregados" value={fmt(waAgg.cur.delivered)} change={delta(waAgg.cur.delivered, waAgg.prev?.delivered)} />
-              <Card label="% Entrega" value={fmtPct(waAgg.cur.deliveryRate)} accent="#4ade80" change={delta(waAgg.cur.deliveryRate, waAgg.prev?.deliveryRate)} />
+              <Card label="% Entrega" value={fmtPct(waAgg.cur.deliveryRate)} accent="#16a34a" change={delta(waAgg.cur.deliveryRate, waAgg.prev?.deliveryRate)} />
               <Card label="Leídos" value={fmt(waAgg.cur.read)} change={delta(waAgg.cur.read, waAgg.prev?.read)} />
-              <Card label="% Leído" value={fmtPct(waAgg.cur.readRate)} accent="#60a5fa" change={delta(waAgg.cur.readRate, waAgg.prev?.readRate)} />
-              <Card label="Errores" value={fmt(waAgg.cur.errors)} accent="#f87171" change={delta(waAgg.cur.errors, waAgg.prev?.errors)} />
+              <Card label="% Leído" value={fmtPct(waAgg.cur.readRate)} accent="#2563eb" change={delta(waAgg.cur.readRate, waAgg.prev?.readRate)} />
+              <Card label="Errores" value={fmt(waAgg.cur.errors)} accent="#dc2626" change={delta(waAgg.cur.errors, waAgg.prev?.errors)} />
             </div>
             {waSeries.length > 1 && (
               <div style={{ ...grid(320), marginTop: 16 }}>
                 <ChartBox title="Entrega y lectura por mes (%)">
                   <LineChart data={waSeries}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1f2b45" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e4e7ec" />
                     <XAxis dataKey="name" {...axis} /><YAxis {...axis} unit="%" /><Tooltip {...tip} /><Legend />
-                    <Line type="monotone" dataKey="Entrega" stroke="#4ade80" strokeWidth={2} dot={false} />
-                    <Line type="monotone" dataKey="Leído" stroke="#60a5fa" strokeWidth={2} dot={false} />
+                    <Line type="monotone" dataKey="Entrega" stroke="#16a34a" strokeWidth={2} dot={false} />
+                    <Line type="monotone" dataKey="Leído" stroke="#2563eb" strokeWidth={2} dot={false} />
                   </LineChart>
                 </ChartBox>
               </div>
@@ -1315,9 +1318,9 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
                           <td style={td}>{fmtDate(c.date)}</td>
                           <td style={td}>{fmt(c.sent)}</td>
                           <td style={td}>{fmt(c.delivered)}</td>
-                          <td style={{ ...td, color: "#4ade80", fontWeight: 600 }}>{fmtPct(c.deliveryRate)}</td>
+                          <td style={{ ...td, color: "#16a34a", fontWeight: 600 }}>{fmtPct(c.deliveryRate)}</td>
                           <td style={td}>{fmt(c.read)}</td>
-                          <td style={{ ...td, color: "#60a5fa", fontWeight: 600 }}>{fmtPct(c.readRate)}</td>
+                          <td style={{ ...td, color: "#2563eb", fontWeight: 600 }}>{fmtPct(c.readRate)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -1327,7 +1330,7 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
             )}
             <Conclusion id={`wa-${sel}`} text={waConclusion(sel, waAgg.cur, waAgg.prev, waAgg.best)} />
           </>
-        ) : !data?.errors?.whatsapp && <div style={{ color: "#8aa0bf", fontSize: 13 }}>Sin campañas de WhatsApp para {monthLabel(sel)}.</div>}
+        ) : !data?.errors?.whatsapp && <div style={{ color: "#6b7280", fontSize: 13 }}>Sin campañas de WhatsApp para {monthLabel(sel)}.</div>}
       </Section>
 
       {/* PUNTOS DE MEJORA (solo interno / modo edición) */}
@@ -1335,8 +1338,8 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
         <Section title="🛠️ Puntos de mejora (interno)" subtitle="Solo visible en modo edición — no se muestra al cliente">
           <div style={grid(300)}>
             {improvements.map((it, i) => (
-              <div key={i} style={{ ...panel, borderLeft: `3px solid ${toneColor[it.tone] || "#fbbf24"}` }}>
-                <div style={{ fontSize: 13, color: "#8aa0bf", marginBottom: 6 }}>
+              <div key={i} style={{ ...panel, borderLeft: `3px solid ${toneColor[it.tone] || "#d97706"}` }}>
+                <div style={{ fontSize: 13, color: "#6b7280", marginBottom: 6 }}>
                   <span style={{ marginRight: 6 }}>{it.emoji}</span>{it.title}
                 </div>
                 <div style={{ fontSize: 14.5, lineHeight: 1.45 }}>{it.text}</div>
@@ -1351,8 +1354,8 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
         <Section title="🔮 Plan del próximo mes" subtitle="Acciones priorizadas y sugerencias automáticas según los datos del mes — valida según el contexto del cliente">
           <div style={grid(300)}>
             {plan.map((it, i) => (
-              <div key={i} style={{ ...panel, borderLeft: `3px solid ${toneColor[it.tone] || "#60a5fa"}` }}>
-                <div style={{ fontSize: 13, color: "#8aa0bf", marginBottom: 6 }}>
+              <div key={i} style={{ ...panel, borderLeft: `3px solid ${toneColor[it.tone] || "#2563eb"}` }}>
+                <div style={{ fontSize: 13, color: "#6b7280", marginBottom: 6 }}>
                   <span style={{ marginRight: 6 }}>{it.emoji}</span>{it.title}
                 </div>
                 <div style={{ fontSize: 14.5, lineHeight: 1.45 }}>{it.text}</div>
@@ -1362,7 +1365,7 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
         </Section>
       )}
 
-      <footer style={{ marginTop: 50, color: "#5b6b84", fontSize: 12, textAlign: "center" }}>
+      <footer style={{ marginTop: 50, color: "#9aa3af", fontSize: 12, textAlign: "center" }}>
         Datos vía Meta Graph API (IG, FB, Meta Ads), Google Ads, GA4, Brevo y LinkedIn · Competencia desde Meta Business Suite · Ebema · Copywriters
       </footer>
     </main>
