@@ -19,7 +19,7 @@ export async function POST(req) {
   if (!pass) return Response.json({ error: "Falta EDIT_PASSWORD en el servidor" }, { status: 400 });
   if (body.password !== pass) return Response.json({ error: "Clave incorrecta" }, { status: 401 });
   if (body.action === "check") return Response.json({ ok: true, kv: kvEnabled() });
-  if (!kvEnabled()) return Response.json({ error: "Falta configurar Vercel KV (KV_REST_API_URL/TOKEN)" }, { status: 400 });
+  if (!kvEnabled()) return Response.json({ error: "Falta configurar Vercel Blob (BLOB_READ_WRITE_TOKEN)" }, { status: 400 });
 
   const store = await readStore();
   store.conclusions = store.conclusions || {};

@@ -734,7 +734,7 @@ export default function Page() {
           {editMode ? (
             <>
               <span style={{ fontWeight: 700, color: BRAND }}>🔓 Modo edición activo</span>
-              <span style={{ color: "#8aa0bf", fontSize: 13 }}>Edita conclusiones y competencia; el cliente verá la versión guardada.{!server.kv ? " ⚠️ Falta configurar Vercel KV: por ahora se guarda solo en este navegador." : ""}</span>
+              <span style={{ color: "#8aa0bf", fontSize: 13 }}>Edita conclusiones y competencia; el cliente verá la versión guardada.{!server.kv ? " ⚠️ Falta crear el store Blob en Vercel: por ahora se guarda solo en este navegador." : ""}</span>
               <button onClick={() => setEditMode(false)} style={{ ...miniBtn, marginLeft: "auto" }}>Salir de edición</button>
             </>
           ) : (
