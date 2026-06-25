@@ -237,10 +237,24 @@ function emailConclusion(key, cur, prev, best) {
   return p.join(" ");
 }
 
+function waConclusion(key, cur, prev, best) {
+  if (!cur || !cur.campaigns?.length) return null;
+  const mes = monthName(key);
+  const dRead = delta(cur.readRate, prev?.readRate);
+  const p = [];
+  p.push(
+    `En ${mes}, WhatsApp (Ebema Click) envió ${fmt(cur.sent)} mensajes con ${fmtPct(cur.deliveryRate)} de entrega y ${fmt(cur.read)} lecturas (${fmtPct(cur.readRate)}${dRead ? `, ${trend(dRead, "+", "−", "")}${absPct(dRead)} vs. el mes anterior` : ""}).`
+  );
+  if (best) p.push(`La campaña «${best.name}» fue la más leída del período (${fmtPct(best.readRate)}).`);
+  if (cur.errors > 0) p.push(`Se registraron ${fmt(cur.errors)} errores de entrega a revisar.`);
+  p.push(`WhatsApp mantiene una visibilidad muy superior al email, ideal para mensajes urgentes o de alto valor.`);
+  return p.join(" ");
+}
+
 const shortName = (s) => (s || "").replace(/^.*?[-–|]\s*/, "").slice(0, 26) || (s || "").slice(0, 26);
 
 // Resumen ejecutivo: 1 línea por canal disponible para el mes.
-function execSummary(sel, ig, fb, ads, gads, ga4, li, email) {
+function execSummary(sel, ig, fb, ads, gads, ga4, li, email, wa) {
   const out = [];
   if (ig?.cur) out.push({ emoji: "📸", t: `Instagram: ${fmt(ig.followers)} seguidores · alcance ${fmt(ig.cur.reach)} · engagement ${fmtPct(ig.cur.engagement)}.` });
   if (fb?.cur) out.push({ emoji: "👍", t: `Facebook: ${fmt(fb.followers)} seguidores · ${fmt(fb.cur.impressions)} visualizaciones · ${fmt(fb.cur.engagement)} interacciones.` });
@@ -249,6 +263,7 @@ function execSummary(sel, ig, fb, ads, gads, ga4, li, email) {
   if (gads?.cur) out.push({ emoji: "🔎", t: `Google Ads: ${fmt(gads.cur.conversions)} conversiones · CTR ${fmtPct(gads.cur.ctr)} · inversión ${fmtMoney(gads.cur.cost)}.` });
   if (ga4?.cur) out.push({ emoji: "📊", t: `GA4: ${fmt(ga4.cur.activeUsers)} usuarios · ${fmt(ga4.cur.sessions)} sesiones · ${fmt(ga4.cur.keyEvents)} eventos clave.` });
   if (email?.cur) out.push({ emoji: "✉️", t: `Email: ${fmt(email.cur.delivered)} entregados · Open Rate ${fmtPct(email.cur.openRate)} · CTOR ${fmtPct(email.cur.ctor)}.` });
+  if (wa?.cur) out.push({ emoji: "💬", t: `WhatsApp: ${fmt(wa.cur.sent)} enviados · ${fmtPct(wa.cur.deliveryRate)} entrega · ${fmtPct(wa.cur.readRate)} leído.` });
   return out;
 }
 
@@ -535,7 +550,30 @@ export default function Page() {
     return { cur, prev, best, series, all: byMonth };
   }, [data, sel, prevKey, months]);
 
-  const exec = useMemo(() => (sel ? execSummary(sel, ig, fb, ads, gads, ga4, li, emailAgg) : []), [sel, ig, fb, ads, gads, ga4, li, emailAgg]);
+  // --- WhatsApp (agregado por mes desde campañas) ---
+  const waAgg = useMemo(() => {
+    const camps = data?.whatsapp?.campaigns || [];
+    if (!camps.length) return null;
+    const byMonth = {};
+    for (const c of camps) {
+      if (!c.monthKey) continue;
+      const b = (byMonth[c.monthKey] = byMonth[c.monthKey] || { sent: 0, delivered: 0, read: 0, clicks: 0, errors: 0, list: [] });
+      b.sent += c.sent; b.delivered += c.delivered; b.read += c.read; b.clicks += c.clicks; b.errors += c.errors; b.list.push(c);
+    }
+    const agg = (b) => b ? {
+      ...b,
+      deliveryRate: b.sent ? Math.round((b.delivered / b.sent) * 1000) / 10 : 0,
+      readRate: b.delivered ? Math.round((b.read / b.delivered) * 1000) / 10 : 0,
+    } : null;
+    const cur = agg(byMonth[sel]);
+    const prev = agg(byMonth[prevKey]);
+    const best = cur?.list?.length ? [...cur.list].sort((a, b) => b.readRate - a.readRate)[0] : null;
+    const series = months.map((k) => ({ key: k, ...(agg(byMonth[k]) || { readRate: 0, deliveryRate: 0 }) }));
+    return { cur, prev, best, series };
+  }, [data, sel, prevKey, months]);
+
+  const exec = useMemo(() => (sel ? execSummary(sel, ig, fb, ads, gads, ga4, li, emailAgg, waAgg) : []), [sel, ig, fb, ads, gads, ga4, li, emailAgg, waAgg]);
+  const waSeries = (waAgg?.series || []).map((x) => ({ name: monthLabel(x.key).split(" ")[0], "Entrega": x.deliveryRate, "Leído": x.readRate }));
   const plan = useMemo(() => (sel ? buildPlan(sel, ads, gads, ga4, ig, fb, emailAgg) : []), [sel, ads, gads, ga4, ig, fb, emailAgg]);
   const improvements = useMemo(() => (sel ? buildImprovements(sel, ig, fb, ads, gads, ga4, li, emailAgg, comp) : []), [sel, ig, fb, ads, gads, ga4, li, emailAgg, comp]);
   const liSeries = (li?.series || []).map((x) => ({ name: monthLabel(x.key).split(" ")[0], Impresiones: x.impressions || 0, Reacciones: x.reactions || 0 }));
@@ -1072,6 +1110,59 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
             <Conclusion id={`email-${sel}`} text={emailConclusion(sel, emailAgg.cur, emailAgg.prev, emailAgg.best)} />
           </>
         ) : !data?.errors?.email && <div style={{ color: "#8aa0bf", fontSize: 13 }}>Sin campañas de email para {monthLabel(sel)}.</div>}
+      </Section>
+
+      {/* WHATSAPP */}
+      <Section title="💬 WhatsApp (Ebema Click)">
+        {data?.errors?.whatsapp && <div style={{ color: "#f5c97b", fontSize: 13, marginBottom: 10 }}>WhatsApp: {data.errors.whatsapp}</div>}
+        {waAgg?.cur ? (
+          <>
+            <div style={grid(150)}>
+              <Card label="Enviados" value={fmt(waAgg.cur.sent)} change={delta(waAgg.cur.sent, waAgg.prev?.sent)} />
+              <Card label="Entregados" value={fmt(waAgg.cur.delivered)} change={delta(waAgg.cur.delivered, waAgg.prev?.delivered)} />
+              <Card label="% Entrega" value={fmtPct(waAgg.cur.deliveryRate)} accent="#4ade80" change={delta(waAgg.cur.deliveryRate, waAgg.prev?.deliveryRate)} />
+              <Card label="Leídos" value={fmt(waAgg.cur.read)} change={delta(waAgg.cur.read, waAgg.prev?.read)} />
+              <Card label="% Leído" value={fmtPct(waAgg.cur.readRate)} accent="#60a5fa" change={delta(waAgg.cur.readRate, waAgg.prev?.readRate)} />
+              <Card label="Errores" value={fmt(waAgg.cur.errors)} accent="#f87171" change={delta(waAgg.cur.errors, waAgg.prev?.errors)} />
+            </div>
+            {waSeries.length > 1 && (
+              <div style={{ ...grid(320), marginTop: 16 }}>
+                <ChartBox title="Entrega y lectura por mes (%)">
+                  <LineChart data={waSeries}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#1f2b45" />
+                    <XAxis dataKey="name" {...axis} /><YAxis {...axis} unit="%" /><Tooltip {...tip} /><Legend />
+                    <Line type="monotone" dataKey="Entrega" stroke="#4ade80" strokeWidth={2} dot={false} />
+                    <Line type="monotone" dataKey="Leído" stroke="#60a5fa" strokeWidth={2} dot={false} />
+                  </LineChart>
+                </ChartBox>
+              </div>
+            )}
+            {waAgg.cur.list?.length > 0 && (
+              <div style={{ marginTop: 24 }}>
+                <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 10 }}>📋 Campañas del mes</div>
+                <div style={{ overflowX: "auto" }}>
+                  <table style={tableStyle}>
+                    <thead><tr><th style={th}>Campaña</th><th style={th}>Fecha</th><th style={th}>Enviados</th><th style={th}>Entregados</th><th style={th}>% Entrega</th><th style={th}>Leídos</th><th style={th}>% Leído</th></tr></thead>
+                    <tbody>
+                      {[...waAgg.cur.list].sort((a, b) => b.readRate - a.readRate).map((c) => (
+                        <tr key={c.id}>
+                          <td style={td}>{c.name}</td>
+                          <td style={td}>{fmtDate(c.date)}</td>
+                          <td style={td}>{fmt(c.sent)}</td>
+                          <td style={td}>{fmt(c.delivered)}</td>
+                          <td style={{ ...td, color: "#4ade80", fontWeight: 600 }}>{fmtPct(c.deliveryRate)}</td>
+                          <td style={td}>{fmt(c.read)}</td>
+                          <td style={{ ...td, color: "#60a5fa", fontWeight: 600 }}>{fmtPct(c.readRate)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+            <Conclusion id={`wa-${sel}`} text={waConclusion(sel, waAgg.cur, waAgg.prev, waAgg.best)} />
+          </>
+        ) : !data?.errors?.whatsapp && <div style={{ color: "#8aa0bf", fontSize: 13 }}>Sin campañas de WhatsApp para {monthLabel(sel)}.</div>}
       </Section>
 
       {/* PUNTOS DE MEJORA */}

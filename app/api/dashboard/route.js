@@ -1,5 +1,5 @@
 import { getMetaDashboard } from "../../../lib/meta";
-import { getEmail } from "../../../lib/brevo";
+import { getEmail, getWhatsapp } from "../../../lib/brevo";
 import { getGoogleAds } from "../../../lib/googleads";
 import { getGA4 } from "../../../lib/ga4";
 import { getLinkedin } from "../../../lib/linkedin";
@@ -44,6 +44,7 @@ export async function GET() {
 
     const meta = await getMetaDashboard();
     const email = await settle(getEmail);
+    const whatsapp = await settle(getWhatsapp);
     const googleAds = await settle(() => getGoogleAds(months));
     const ga4 = await settle(() => getGA4(months));
     const linkedin = await settle(() => getLinkedin(months));
@@ -58,10 +59,12 @@ export async function GET() {
       ga4: ga4.value || null,
       linkedin: linkedin.value || null,
       email: email.value || null,
+      whatsapp: whatsapp.value || null,
       manual: manual || null,
       errors: {
         ...meta.errors,
         email: email.error || null,
+        whatsapp: whatsapp.error || null,
         googleAds: googleAds.error || null,
         ga4: ga4.error || null,
         linkedin: linkedin.error || null,
@@ -69,7 +72,7 @@ export async function GET() {
     };
 
     // Solo cachea si al menos una fuente vino bien (no cachear fallos totales/transitorios).
-    const anyOk = meta.instagram || meta.facebook || meta.ads || result.googleAds || result.ga4 || result.linkedin || result.email;
+    const anyOk = meta.instagram || meta.facebook || meta.ads || result.googleAds || result.ga4 || result.linkedin || result.email || result.whatsapp;
     if (anyOk) {
       _cache = { at: Date.now(), data: result };
       return Response.json(result, { headers: { "Cache-Control": "no-store" } });
