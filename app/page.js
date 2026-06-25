@@ -836,7 +836,8 @@ export default function Page() {
   const waSeries = (waAgg?.series || []).map((x) => ({ name: monthLabel(x.key).split(" ")[0], "Entrega": x.deliveryRate, "Leído": x.readRate }));
   const plan = useMemo(() => (sel ? buildPlan(sel, ads, gads, ga4, ig, fb, emailAgg) : []), [sel, ads, gads, ga4, ig, fb, emailAgg]);
   const improvements = useMemo(() => (sel ? buildImprovements(sel, ig, fb, ads, gads, ga4, li, emailAgg, comp) : []), [sel, ig, fb, ads, gads, ga4, li, emailAgg, comp]);
-  const liSeries = (li?.series || []).map((x) => ({ name: monthLabel(x.key).split(" ")[0], Impresiones: x.impressions || 0, Reacciones: x.reactions || 0 }));
+  // Solo meses con datos reales de LinkedIn (sin rellenar con 0) para que el gráfico no se vea plano.
+  const liSeries = (li?.series || []).filter((x) => x.impressions != null || x.reactions != null).map((x) => ({ name: monthLabel(x.key).split(" ")[0], Impresiones: x.impressions ?? null, Reacciones: x.reactions ?? null }));
 
   // Series para gráficos de evolución (todos los meses, ascendente).
   const igSeries = (ig?.series || []).map((x) => ({ name: monthLabel(x.key).split(" ")[0], Alcance: x.reach, Interacciones: x.interactions }));
