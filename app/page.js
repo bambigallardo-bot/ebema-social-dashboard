@@ -437,6 +437,19 @@ function buildImprovements(sel, ig, fb, ads, gads, ga4, li, email, comp) {
   return out;
 }
 
+// ---------------- Miniatura de publicación ----------------
+function Thumb({ src, alt }) {
+  if (!src) return null;
+  return (
+    <img
+      src={src}
+      alt={alt || ""}
+      loading="lazy"
+      style={{ width: 46, height: 46, objectFit: "cover", borderRadius: 6, border: "1px solid #e4e7ec", flexShrink: 0 }}
+    />
+  );
+}
+
 // ---------------- Editor de competencia (modo edición) ----------------
 function CompetenciaEditor({ source, monthKey, prevMonthKey, onSave }) {
   const ig = (source && source.instagram) || {};
@@ -498,6 +511,87 @@ function CompetenciaEditor({ source, monthKey, prevMonthKey, onSave }) {
   );
 }
 
+// ---------------- Editor de LinkedIn (modo edición — manual con gráficos) ----------------
+function LinkedinEditor({ source, monthKey, onSave }) {
+  const src = source || {};
+  const seedM = (src.monthly || {})[monthKey] || {};
+  const seedBest = ((src.best || {})[monthKey] || []).map((b) => ({ ...b }));
+  while (seedBest.length < 3) seedBest.push({ label: "", date: "", impressions: "", reactions: "", clicks: "", newFollowers: "", image: "" });
+  const [followers, setFollowers] = useState((src.followers || {})[monthKey] ?? "");
+  const [m, setM] = useState({
+    acquired: seedM.acquired ?? "", impressions: seedM.impressions ?? "", views: seedM.views ?? "",
+    reactions: seedM.reactions ?? "", engagement: seedM.engagement ?? "",
+  });
+  const [best, setBest] = useState(seedBest);
+  const [saving, setSaving] = useState(false);
+  const [ok, setOk] = useState(false);
+  const inp = { background: "#f4f5f7", color: "#1a1a1a", border: "1px solid #e4e7ec", borderRadius: 6, padding: "6px 8px", fontSize: 13, width: "100%", boxSizing: "border-box" };
+  const num = (v) => (v !== "" && v != null && !isNaN(Number(v)) ? Number(v) : null);
+  const updM = (f, v) => setM((o) => ({ ...o, [f]: v }));
+  const updB = (i, f, v) => setBest((rs) => rs.map((r, idx) => (idx === i ? { ...r, [f]: v } : r)));
+  const save = async () => {
+    setSaving(true); setOk(false);
+    const obj = {
+      profileUrl: src.profileUrl || "",
+      followers: { ...(src.followers || {}) },
+      monthly: { ...(src.monthly || {}) },
+      best: { ...(src.best || {}) },
+    };
+    if (num(followers) != null) obj.followers[monthKey] = num(followers);
+    obj.monthly[monthKey] = {
+      acquired: num(m.acquired) ?? 0, impressions: num(m.impressions) ?? 0, views: num(m.views) ?? 0,
+      reactions: num(m.reactions) ?? 0, engagement: num(m.engagement) ?? 0,
+    };
+    const cleanBest = best
+      .filter((b) => (b.label || "").trim())
+      .map((b) => ({ label: b.label.trim(), date: b.date || "", impressions: num(b.impressions) ?? 0, reactions: num(b.reactions) ?? 0, clicks: num(b.clicks) ?? 0, newFollowers: num(b.newFollowers) ?? 0, image: (b.image || "").trim() || undefined }));
+    if (cleanBest.length) obj.best[monthKey] = cleanBest; else delete obj.best[monthKey];
+    const r = await onSave(obj);
+    setSaving(false); setOk(r !== false);
+  };
+  const field = (label, val, setter, extra) => (
+    <label style={{ fontSize: 12, color: "#6b7280" }}>{label}
+      <input value={val} onChange={(e) => setter(e.target.value)} style={{ ...inp, marginTop: 4 }} inputMode="numeric" placeholder="—" {...extra} />
+    </label>
+  );
+  return (
+    <div className="no-print" style={{ ...panel, marginBottom: 16, borderLeft: `3px solid ${BRAND}` }}>
+      <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>✏️ Editar LinkedIn · {monthLabel(monthKey)} <span style={{ color: "#6b7280", fontWeight: 400 }}>(datos desde LinkedIn Analytics; los gráficos se generan solos)</span></div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 10 }}>
+        {field("Seguidores (total)", followers, setFollowers)}
+        {field("Adquiridos (mes)", m.acquired, (v) => updM("acquired", v))}
+        {field("Impresiones", m.impressions, (v) => updM("impressions", v))}
+        {field("Visualizaciones", m.views, (v) => updM("views", v))}
+        {field("Reacciones", m.reactions, (v) => updM("reactions", v))}
+        {field("Engagement %", m.engagement, (v) => updM("engagement", v))}
+      </div>
+      <div style={{ fontSize: 12, fontWeight: 600, marginTop: 16, marginBottom: 8 }}>🏆 Mejores publicaciones (hasta 3)</div>
+      <div style={{ overflowX: "auto" }}>
+        <table style={{ ...tableStyle, background: "transparent" }}>
+          <thead><tr><th style={th}>Título</th><th style={th}>Fecha</th><th style={th}>Impres.</th><th style={th}>Reacc.</th><th style={th}>Clics</th><th style={th}>Nuevos seg.</th><th style={th}>Imagen (URL)</th></tr></thead>
+          <tbody>
+            {best.map((b, i) => (
+              <tr key={i}>
+                <td style={td}><input value={b.label} onChange={(e) => updB(i, "label", e.target.value)} style={inp} placeholder="POST: …" /></td>
+                <td style={td}><input value={b.date} onChange={(e) => updB(i, "date", e.target.value)} style={{ ...inp, width: 90 }} placeholder="5 mayo" /></td>
+                <td style={td}><input value={b.impressions} onChange={(e) => updB(i, "impressions", e.target.value)} style={{ ...inp, width: 80 }} inputMode="numeric" /></td>
+                <td style={td}><input value={b.reactions} onChange={(e) => updB(i, "reactions", e.target.value)} style={{ ...inp, width: 70 }} inputMode="numeric" /></td>
+                <td style={td}><input value={b.clicks} onChange={(e) => updB(i, "clicks", e.target.value)} style={{ ...inp, width: 70 }} inputMode="numeric" /></td>
+                <td style={td}><input value={b.newFollowers} onChange={(e) => updB(i, "newFollowers", e.target.value)} style={{ ...inp, width: 70 }} inputMode="numeric" /></td>
+                <td style={td}><input value={b.image} onChange={(e) => updB(i, "image", e.target.value)} style={{ ...inp, minWidth: 160 }} placeholder="https://…" /></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div style={{ display: "flex", gap: 8, marginTop: 10, alignItems: "center" }}>
+        <button disabled={saving} onClick={save} style={{ ...miniBtn, background: BRAND, color: "#fff", border: "none" }}>{saving ? "Guardando…" : "Guardar LinkedIn"}</button>
+        {ok && <span style={{ color: "#16a34a", fontSize: 13 }}>✓ Guardado</span>}
+      </div>
+    </div>
+  );
+}
+
 // ---------------- Page ----------------
 export default function Page() {
   const [data, setData] = useState(null);
@@ -506,7 +600,7 @@ export default function Page() {
   const [sel, setSel] = useState(null);
 
   // Modo edición + overrides compartidos (servidor).
-  const [server, setServer] = useState({ conclusions: {}, competencia: null, kv: false });
+  const [server, setServer] = useState({ conclusions: {}, competencia: null, linkedin: null, kv: false });
   const [editParam, setEditParam] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [editPass, setEditPass] = useState("");
@@ -531,7 +625,7 @@ export default function Page() {
     try {
       const res = await fetch("/api/overrides", { cache: "no-store" });
       const j = await res.json();
-      setServer({ conclusions: j.conclusions || {}, competencia: j.competencia || null, kv: !!j.kv });
+      setServer({ conclusions: j.conclusions || {}, competencia: j.competencia || null, linkedin: j.linkedin || null, kv: !!j.kv });
     } catch (_) {}
   }, []);
 
@@ -570,6 +664,12 @@ export default function Page() {
   const saveCompetencia = useCallback(async (obj) => {
     const res = await fetch("/api/overrides", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ password: editPass, type: "competencia", value: obj }) });
     if (res.ok) { setServer((s) => ({ ...s, competencia: obj })); return true; }
+    const j = await res.json().catch(() => ({})); alert("No se pudo guardar: " + (j.error || res.status)); return false;
+  }, [editPass]);
+
+  const saveLinkedin = useCallback(async (obj) => {
+    const res = await fetch("/api/overrides", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ password: editPass, type: "linkedin", value: obj }) });
+    if (res.ok) { setServer((s) => ({ ...s, linkedin: obj })); return true; }
     const j = await res.json().catch(() => ({})); alert("No se pudo guardar: " + (j.error || res.status)); return false;
   }, [editPass]);
 
@@ -651,7 +751,7 @@ export default function Page() {
   // --- LinkedIn (API en vivo, con fallback a datos sembrados en data/manual.json) ---
   const li = useMemo(() => {
     const api = data?.linkedin;
-    const man = data?.manual?.linkedin;
+    const man = server.linkedin || data?.manual?.linkedin;
     if (!api && !man) return null;
     const monthlyOf = (k) => api?.monthly?.[k] || man?.monthly?.[k] || null;
     const cur = monthlyOf(sel);
@@ -672,7 +772,7 @@ export default function Page() {
     const best = (api?.bestByMonth?.[sel]?.length ? api.bestByMonth[sel] : man?.best?.[sel]) || [];
     const series = months.map((k) => ({ key: k, ...(monthlyOf(k) || {}), followers: fMap[k] ?? null }));
     return { cur, prev, followers, fPrev, best, series, hasMonth: !!cur, connected: !!api };
-  }, [data, sel, prevKey, months]);
+  }, [data, server.linkedin, sel, prevKey, months]);
 
   // --- Competencia (editable; servidor tiene prioridad sobre el seed manual) ---
   const compSource = server.competencia || data?.manual?.competencia || null;
@@ -873,7 +973,7 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
                       {ig.best.map((p, i) => (
                         <tr key={p.id}>
                           <td style={{ ...td, color: "#d97706", fontWeight: 700 }}>{i + 1}</td>
-                          <td style={td}><a href={p.permalink} target="_blank" rel="noreferrer" style={{ color: "#374151" }}>{p.caption || "(sin texto)"}</a></td>
+                          <td style={td}><div style={{ display: "flex", alignItems: "center", gap: 10 }}><Thumb src={p.thumb} alt={p.caption} /><a href={p.permalink} target="_blank" rel="noreferrer" style={{ color: "#374151" }}>{p.caption || "(sin texto)"}</a></div></td>
                           <td style={td}>{p.type}</td>
                           <td style={td}>{fmtDate(p.date)}</td>
                           <td style={{ ...td, color: "#2563eb", fontWeight: 600 }}>{fmt(p.reach)}</td>
@@ -933,7 +1033,7 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
                       {fb.best.map((p, i) => (
                         <tr key={p.id}>
                           <td style={{ ...td, color: "#d97706", fontWeight: 700 }}>{i + 1}</td>
-                          <td style={td}><a href={p.permalink} target="_blank" rel="noreferrer" style={{ color: "#374151" }}>{p.message || "(sin texto)"}</a></td>
+                          <td style={td}><div style={{ display: "flex", alignItems: "center", gap: 10 }}><Thumb src={p.thumb} alt={p.message} /><a href={p.permalink} target="_blank" rel="noreferrer" style={{ color: "#374151" }}>{p.message || "(sin texto)"}</a></div></td>
                           <td style={td}>{fmtDate(p.date)}</td>
                           <td style={{ ...td, color: "#2563eb", fontWeight: 600 }}>{fmt(p.reach)}</td>
                         </tr>
@@ -950,13 +1050,16 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
 
       {/* LINKEDIN (MANUAL) */}
       {li && (
-        <Section title={<span>💼 LinkedIn <span style={li.connected ? autoBadge : chromeBadge}>{li.connected ? "AUTO · API" : "DATOS DE EJEMPLO"}</span></span>} subtitle="Conectado por la API de LinkedIn (en vivo). Solo Competencia queda manual.">
+        <Section title={<span>💼 LinkedIn <span style={li.connected ? autoBadge : chromeBadge}>{li.connected ? "AUTO · API" : (server.linkedin ? "MANUAL" : "DATOS DE EJEMPLO")} {editMode && !li.connected && <span style={chromeBadge}>EDITABLE</span>}</span></span>} subtitle={li.connected ? "Conectado por la API de LinkedIn (en vivo)." : "Datos cargados manualmente (LinkedIn Analytics); los gráficos se generan solos."}>
           {data?.errors?.linkedin && <div style={{ color: "#b45309", fontSize: 13, marginBottom: 10 }}>LinkedIn: {data.errors.linkedin}</div>}
-          {!li.connected && (
-            <div style={{ ...alertBox, marginBottom: 12 }}>ℹ️ Aún sin token de LinkedIn: mostrando datos de ejemplo. Para datos en vivo, configura <code>LINKEDIN_ACCESS_TOKEN</code> y <code>LINKEDIN_ORG_ID</code> (pasos en el README).</div>
+          {editMode && !li.connected && (
+            <LinkedinEditor source={server.linkedin || data?.manual?.linkedin} monthKey={sel} onSave={saveLinkedin} />
+          )}
+          {!li.connected && !editMode && !server.linkedin && (
+            <div style={{ ...alertBox, marginBottom: 12 }}>ℹ️ Sin token de LinkedIn: mostrando datos de ejemplo. Para datos en vivo configura <code>LINKEDIN_ACCESS_TOKEN</code>, o carga los números a mano en modo edición.</div>
           )}
           {!li.hasMonth ? (
-            <div style={alertBox}>⚠️ Sin datos de LinkedIn para {monthLabel(sel)} todavía.</div>
+            <div style={alertBox}>⚠️ Sin datos de LinkedIn para {monthLabel(sel)} todavía.{editMode ? " Llena los campos de arriba y guarda." : ""}</div>
           ) : (
             <>
               <div style={grid(150)}>
@@ -995,7 +1098,7 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
                         {li.best.map((p, i) => (
                           <tr key={i}>
                             <td style={{ ...td, color: "#d97706", fontWeight: 700 }}>{i + 1}</td>
-                            <td style={td}>{p.label}</td>
+                            <td style={td}><div style={{ display: "flex", alignItems: "center", gap: 10 }}><Thumb src={p.image} alt={p.label} />{p.label}</div></td>
                             <td style={td}>{p.date}</td>
                             <td style={{ ...td, color: "#2563eb", fontWeight: 600 }}>{fmt(p.impressions)}</td>
                             <td style={td}>{fmt(p.reactions)}</td>
