@@ -54,11 +54,11 @@ export async function GET() {
     // En paralelo: cada fuente pega a una API distinta, así el tiempo total = la más lenta.
     // Cada una con su propio timeout para que ninguna tumbe la respuesta completa.
     const [meta, email, whatsapp, googleAds, ga4, linkedin] = await Promise.all([
-      settle(getMetaDashboard, 45000, "Meta"),
+      settle(getMetaDashboard, 55000, "Meta"),
       settle(getEmail, 25000, "Email"),
       settle(getWhatsapp, 25000, "WhatsApp"),
-      settle(() => getGoogleAds(months), 30000, "Google Ads"),
-      settle(() => getGA4(months), 30000, "GA4"),
+      settle(() => getGoogleAds(months), 35000, "Google Ads"),
+      settle(() => getGA4(months), 35000, "GA4"),
       settle(() => getLinkedin(months), 25000, "LinkedIn"),
     ]);
     const m = meta.value || {};
@@ -95,8 +95,11 @@ export async function GET() {
 
     // Solo cachea si al menos una fuente vino bien (no cachear fallos totales/transitorios).
     const anyOk = result.instagram || result.facebook || result.ads || result.googleAds || result.ga4 || result.linkedin || result.email || result.whatsapp;
+    // NO congelar un estado sin Meta (IG/FB/Ads): si Meta no trajo nada esta vez, devuelve lo que haya
+    // pero no lo cachees, así la próxima carga reintenta Meta en vez de quedarse vacío 10 min.
+    const metaPresent = !!(result.instagram || result.facebook || result.ads);
     if (anyOk) {
-      _cache = { at: Date.now(), data: result };
+      if (metaPresent) _cache = { at: Date.now(), data: result };
       return Response.json(result, { headers: { "Cache-Control": "no-store" } });
     }
     if (_cache.data) {
