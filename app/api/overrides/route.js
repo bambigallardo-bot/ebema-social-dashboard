@@ -7,7 +7,7 @@ export const revalidate = 0;
 export async function GET() {
   const store = await readStore();
   return Response.json(
-    { conclusions: store.conclusions || {}, competencia: store.competencia || null, linkedin: store.linkedin || null, kv: kvEnabled() },
+    { conclusions: store.conclusions || {}, competencia: store.competencia || null, linkedin: store.linkedin || null, facebook: store.facebook || null, kv: kvEnabled() },
     { headers: { "Cache-Control": "no-store" } }
   );
 }
@@ -30,6 +30,8 @@ export async function POST(req) {
     store.competencia = body.value;
   } else if (body.type === "linkedin") {
     store.linkedin = body.value;
+  } else if (body.type === "facebook") {
+    store.facebook = body.value;
   } else {
     return Response.json({ error: "tipo inválido" }, { status: 400 });
   }

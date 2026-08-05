@@ -592,6 +592,61 @@ function LinkedinEditor({ source, monthKey, onSave }) {
   );
 }
 
+// ---------------- Editor de Facebook (modo edición — corrige KPIs sin borrar lo automático) ----------------
+function FacebookEditor({ source, apiCur, monthKey, onSave }) {
+  // Campos editables. El placeholder muestra el valor automático (API) para referencia.
+  const FIELDS = [
+    { k: "followers", label: "Seguidores" },
+    { k: "fanAdds", label: "Nuevos seguidores" },
+    { k: "posts", label: "Posts" },
+    { k: "reach", label: "Espectadores (alcance)" },
+    { k: "impressions", label: "Visualizaciones" },
+    { k: "engagement", label: "Interacciones" },
+    { k: "profileViews", label: "Visitas al perfil" },
+  ];
+  const src = source || {};
+  const seed = (src[monthKey] || {});
+  const [vals, setVals] = useState(() => {
+    const o = {};
+    for (const f of FIELDS) o[f.k] = seed[f.k] ?? "";
+    return o;
+  });
+  const [saving, setSaving] = useState(false);
+  const [ok, setOk] = useState(false);
+  const inp = { background: "#f4f5f7", color: "#1a1a1a", border: "1px solid #e4e7ec", borderRadius: 6, padding: "6px 8px", fontSize: 13, width: "100%", boxSizing: "border-box" };
+  const upd = (k, v) => setVals((o) => ({ ...o, [k]: v }));
+  const save = async () => {
+    setSaving(true); setOk(false);
+    const monthObj = {};
+    for (const f of FIELDS) {
+      const v = vals[f.k];
+      if (v !== "" && v != null && !isNaN(Number(v))) monthObj[f.k] = Number(v);
+    }
+    const obj = { ...src };
+    if (Object.keys(monthObj).length) obj[monthKey] = monthObj; else delete obj[monthKey];
+    const r = await onSave(obj);
+    setSaving(false); setOk(r !== false);
+  };
+  return (
+    <div className="no-print" style={{ ...panel, marginBottom: 16, borderLeft: `3px solid ${BRAND}` }}>
+      <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>✏️ Corregir Facebook · {monthLabel(monthKey)}</div>
+      <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 10 }}>Escribe el valor real (ej. el de Meta Business Suite). Lo que dejes vacío mantiene el dato automático. No borra nada.</div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: 10 }}>
+        {FIELDS.map((f) => (
+          <label key={f.k} style={{ fontSize: 12, color: "#6b7280" }}>{f.label}
+            <input value={vals[f.k]} onChange={(e) => upd(f.k, e.target.value)} style={{ ...inp, marginTop: 4 }} inputMode="numeric"
+              placeholder={apiCur && apiCur[f.k] != null ? `auto: ${apiCur[f.k]}` : "—"} />
+          </label>
+        ))}
+      </div>
+      <div style={{ display: "flex", gap: 8, marginTop: 10, alignItems: "center" }}>
+        <button disabled={saving} onClick={save} style={{ ...miniBtn, background: BRAND, color: "#fff", border: "none" }}>{saving ? "Guardando…" : "Guardar Facebook"}</button>
+        {ok && <span style={{ color: "#16a34a", fontSize: 13 }}>✓ Guardado</span>}
+      </div>
+    </div>
+  );
+}
+
 // ---------------- Page ----------------
 export default function Page() {
   const [data, setData] = useState(null);
@@ -600,7 +655,7 @@ export default function Page() {
   const [sel, setSel] = useState(null);
 
   // Modo edición + overrides compartidos (servidor).
-  const [server, setServer] = useState({ conclusions: {}, competencia: null, linkedin: null, kv: false });
+  const [server, setServer] = useState({ conclusions: {}, competencia: null, linkedin: null, facebook: null, kv: false });
   const [editParam, setEditParam] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [editPass, setEditPass] = useState("");
@@ -629,7 +684,7 @@ export default function Page() {
     try {
       const res = await fetch("/api/overrides", { cache: "no-store" });
       const j = await res.json();
-      setServer({ conclusions: j.conclusions || {}, competencia: j.competencia || null, linkedin: j.linkedin || null, kv: !!j.kv });
+      setServer({ conclusions: j.conclusions || {}, competencia: j.competencia || null, linkedin: j.linkedin || null, facebook: j.facebook || null, kv: !!j.kv });
     } catch (_) {}
   }, []);
 
@@ -677,6 +732,12 @@ export default function Page() {
     const j = await res.json().catch(() => ({})); alert("No se pudo guardar: " + (j.error || res.status)); return false;
   }, [editPass]);
 
+  const saveFacebook = useCallback(async (obj) => {
+    const res = await fetch("/api/overrides", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ password: editPass, type: "facebook", value: obj }) });
+    if (res.ok) { setServer((s) => ({ ...s, facebook: obj })); return true; }
+    const j = await res.json().catch(() => ({})); alert("No se pudo guardar: " + (j.error || res.status)); return false;
+  }, [editPass]);
+
   const editCtxValue = useMemo(() => ({
     kv: server.kv,
     canEdit: editMode,
@@ -713,10 +774,27 @@ export default function Page() {
     if (!m) return null;
     const monthly = m.monthly || [];
     const fMap = followersByMonth(monthly, m.followers ?? null, "fanAdds");
-    const cur = monthly.find((x) => x.key === sel) || null;
-    const prev = monthly.find((x) => x.key === prevKey) || null;
-    return { followers: fMap[sel] ?? m.followers, fPrev: fMap[prevKey] ?? null, name: m.name, cur, prev, best: m.bestByMonth?.[sel] || [], series: monthly };
-  }, [data, sel, prevKey]);
+    // Overrides manuales por mes (edición): reemplazan SOLO los campos que el CM escribió; el resto queda automático.
+    const ov = server.facebook || {};
+    const merge = (obj, key) => {
+      const o = ov[key];
+      if (!obj || !o) return obj;
+      const out = { ...obj };
+      for (const k of ["fanAdds", "posts", "reach", "impressions", "engagement", "profileViews"]) {
+        if (o[k] != null && o[k] !== "") out[k] = Number(o[k]);
+      }
+      return out;
+    };
+    const cur = merge(monthly.find((x) => x.key === sel) || null, sel);
+    const prev = merge(monthly.find((x) => x.key === prevKey) || null, prevKey);
+    const series = monthly.map((x) => merge(x, x.key));
+    const folOv = (k, fallback) => (ov[k]?.followers != null && ov[k]?.followers !== "" ? Number(ov[k].followers) : fallback);
+    return {
+      followers: folOv(sel, fMap[sel] ?? m.followers),
+      fPrev: folOv(prevKey, fMap[prevKey] ?? null),
+      name: m.name, cur, prev, best: m.bestByMonth?.[sel] || [], series,
+    };
+  }, [data, server.facebook, sel, prevKey]);
 
   // --- Meta Ads ---
   const ads = useMemo(() => {
@@ -997,8 +1075,11 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
       </Section>
 
       {/* FACEBOOK */}
-      <Section title="👍 Facebook / Meta (orgánico)">
+      <Section title={<span>👍 Facebook / Meta (orgánico) {editMode && <span style={chromeBadge}>EDITABLE</span>}</span>}>
         {data?.errors?.facebook && <div style={{ color: "#b45309", fontSize: 13, marginBottom: 10 }}>Facebook: {data.errors.facebook}</div>}
+        {editMode && (
+          <FacebookEditor source={server.facebook} apiCur={data?.facebook?.monthly?.find((x) => x.key === sel) || null} monthKey={sel} onSave={saveFacebook} />
+        )}
         {fb?.cur ? (
           <>
             <div style={grid(150)}>
