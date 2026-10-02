@@ -592,23 +592,14 @@ function LinkedinEditor({ source, monthKey, onSave }) {
   );
 }
 
-// ---------------- Editor de Facebook (modo edición — corrige KPIs sin borrar lo automático) ----------------
-function FacebookEditor({ source, apiCur, monthKey, onSave }) {
-  // Campos editables. El placeholder muestra el valor automático (API) para referencia.
-  const FIELDS = [
-    { k: "followers", label: "Seguidores" },
-    { k: "fanAdds", label: "Nuevos seguidores" },
-    { k: "posts", label: "Posts" },
-    { k: "reach", label: "Espectadores (alcance)" },
-    { k: "impressions", label: "Visualizaciones" },
-    { k: "engagement", label: "Interacciones" },
-    { k: "profileViews", label: "Visitas al perfil" },
-  ];
+// ---------------- Editor de métricas por mes (reutilizable: IG, FB, etc. — corrige KPIs sin borrar lo automático) ----------------
+function MetricsEditor({ title, fields, source, apiCur, monthKey, onSave }) {
+  // `fields` = [{k, label}]. El placeholder muestra el valor automático (API) para referencia.
   const src = source || {};
   const seed = (src[monthKey] || {});
   const [vals, setVals] = useState(() => {
     const o = {};
-    for (const f of FIELDS) o[f.k] = seed[f.k] ?? "";
+    for (const f of fields) o[f.k] = seed[f.k] ?? "";
     return o;
   });
   const [saving, setSaving] = useState(false);
@@ -618,7 +609,7 @@ function FacebookEditor({ source, apiCur, monthKey, onSave }) {
   const save = async () => {
     setSaving(true); setOk(false);
     const monthObj = {};
-    for (const f of FIELDS) {
+    for (const f of fields) {
       const v = vals[f.k];
       if (v !== "" && v != null && !isNaN(Number(v))) monthObj[f.k] = Number(v);
     }
@@ -629,10 +620,10 @@ function FacebookEditor({ source, apiCur, monthKey, onSave }) {
   };
   return (
     <div className="no-print" style={{ ...panel, marginBottom: 16, borderLeft: `3px solid ${BRAND}` }}>
-      <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>✏️ Corregir Facebook · {monthLabel(monthKey)}</div>
-      <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 10 }}>Escribe el valor real (ej. el de Meta Business Suite). Lo que dejes vacío mantiene el dato automático. No borra nada.</div>
+      <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>✏️ Corregir {title} · {monthLabel(monthKey)}</div>
+      <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 10 }}>Escribe el valor real (ej. el que muestra la propia app / Business Suite). Lo que dejes vacío mantiene el dato automático. No borra nada.</div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: 10 }}>
-        {FIELDS.map((f) => (
+        {fields.map((f) => (
           <label key={f.k} style={{ fontSize: 12, color: "#6b7280" }}>{f.label}
             <input value={vals[f.k]} onChange={(e) => upd(f.k, e.target.value)} style={{ ...inp, marginTop: 4 }} inputMode="numeric"
               placeholder={apiCur && apiCur[f.k] != null ? `auto: ${apiCur[f.k]}` : "—"} />
@@ -640,12 +631,33 @@ function FacebookEditor({ source, apiCur, monthKey, onSave }) {
         ))}
       </div>
       <div style={{ display: "flex", gap: 8, marginTop: 10, alignItems: "center" }}>
-        <button disabled={saving} onClick={save} style={{ ...miniBtn, background: BRAND, color: "#fff", border: "none" }}>{saving ? "Guardando…" : "Guardar Facebook"}</button>
+        <button disabled={saving} onClick={save} style={{ ...miniBtn, background: BRAND, color: "#fff", border: "none" }}>{saving ? "Guardando…" : `Guardar ${title}`}</button>
         {ok && <span style={{ color: "#16a34a", fontSize: 13 }}>✓ Guardado</span>}
       </div>
     </div>
   );
 }
+
+// Campos editables por canal.
+const FB_FIELDS = [
+  { k: "followers", label: "Seguidores" },
+  { k: "fanAdds", label: "Nuevos seguidores" },
+  { k: "posts", label: "Posts" },
+  { k: "reach", label: "Espectadores (alcance)" },
+  { k: "impressions", label: "Visualizaciones" },
+  { k: "engagement", label: "Interacciones" },
+  { k: "profileViews", label: "Visitas al perfil" },
+];
+const IG_FIELDS = [
+  { k: "followers", label: "Seguidores" },
+  { k: "newFollowers", label: "Nuevos seguidores" },
+  { k: "posts", label: "Posts" },
+  { k: "reach", label: "Alcance" },
+  { k: "views", label: "Visualizaciones" },
+  { k: "interactions", label: "Interacciones" },
+  { k: "webClicks", label: "Clics a la web" },
+  { k: "engagement", label: "Engagement (%)" },
+];
 
 // ---------------- Page ----------------
 export default function Page() {
@@ -655,7 +667,7 @@ export default function Page() {
   const [sel, setSel] = useState(null);
 
   // Modo edición + overrides compartidos (servidor).
-  const [server, setServer] = useState({ conclusions: {}, competencia: null, linkedin: null, facebook: null, kv: false });
+  const [server, setServer] = useState({ conclusions: {}, competencia: null, linkedin: null, facebook: null, instagram: null, kv: false });
   const [editParam, setEditParam] = useState(false);
   const [editMode, setEditMode] = useState(false);
   // Pestañas principales del informe. Al exportar el PDF se muestran todas.
@@ -687,7 +699,7 @@ export default function Page() {
     try {
       const res = await fetch("/api/overrides", { cache: "no-store" });
       const j = await res.json();
-      setServer({ conclusions: j.conclusions || {}, competencia: j.competencia || null, linkedin: j.linkedin || null, facebook: j.facebook || null, kv: !!j.kv });
+      setServer({ conclusions: j.conclusions || {}, competencia: j.competencia || null, linkedin: j.linkedin || null, facebook: j.facebook || null, instagram: j.instagram || null, kv: !!j.kv });
     } catch (_) {}
   }, []);
 
@@ -741,6 +753,12 @@ export default function Page() {
     const j = await res.json().catch(() => ({})); alert("No se pudo guardar: " + (j.error || res.status)); return false;
   }, [editPass]);
 
+  const saveInstagram = useCallback(async (obj) => {
+    const res = await fetch("/api/overrides", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ password: editPass, type: "instagram", value: obj }) });
+    if (res.ok) { setServer((s) => ({ ...s, instagram: obj })); return true; }
+    const j = await res.json().catch(() => ({})); alert("No se pudo guardar: " + (j.error || res.status)); return false;
+  }, [editPass]);
+
   // El PDF debe salir completo aunque estés parada en una pestaña: se montan todas,
   // se le da tiempo a los gráficos a dibujarse y recién ahí se abre el diálogo de impresión.
   const exportPdf = useCallback(() => {
@@ -784,10 +802,27 @@ export default function Page() {
     if (!m) return null;
     const monthly = m.monthly || [];
     const fMap = followersByMonth(monthly, m.followers ?? null, "newFollowers");
-    const cur = monthly.find((x) => x.key === sel) || null;
-    const prev = monthly.find((x) => x.key === prevKey) || null;
-    return { followers: fMap[sel] ?? m.followers, fPrev: fMap[prevKey] ?? null, username: m.username, cur, prev, best: m.bestByMonth?.[sel] || [], series: monthly };
-  }, [data, sel, prevKey]);
+    // Overrides manuales por mes (edición): reemplazan SOLO los campos que el CM escribió; el resto queda automático.
+    const ov = server.instagram || {};
+    const merge = (obj, key) => {
+      const o = ov[key];
+      if (!obj || !o) return obj;
+      const out = { ...obj };
+      for (const k of ["newFollowers", "posts", "reach", "views", "interactions", "webClicks", "engagement"]) {
+        if (o[k] != null && o[k] !== "") out[k] = Number(o[k]);
+      }
+      return out;
+    };
+    const cur = merge(monthly.find((x) => x.key === sel) || null, sel);
+    const prev = merge(monthly.find((x) => x.key === prevKey) || null, prevKey);
+    const series = monthly.map((x) => merge(x, x.key));
+    const folOv = (k, fallback) => (ov[k]?.followers != null && ov[k]?.followers !== "" ? Number(ov[k].followers) : fallback);
+    return {
+      followers: folOv(sel, fMap[sel] ?? m.followers),
+      fPrev: folOv(prevKey, fMap[prevKey] ?? null),
+      username: m.username, cur, prev, best: m.bestByMonth?.[sel] || [], series,
+    };
+  }, [data, server.instagram, sel, prevKey]);
 
   // --- Facebook ---
   const fb = useMemo(() => {
@@ -1063,8 +1098,11 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
 
       {showTab("contenidos") && (<>
       {/* INSTAGRAM */}
-      <Section title="📸 Instagram (orgánico)" subtitle={ig?.username ? `@${ig.username}` : undefined}>
+      <Section title={<span>📸 Instagram (orgánico) {editMode && <span style={chromeBadge}>EDITABLE</span>}</span>} subtitle={ig?.username ? `@${ig.username}` : undefined}>
         {data?.errors?.instagram && <div style={{ color: "#b45309", fontSize: 13, marginBottom: 10 }}>Instagram: {data.errors.instagram}</div>}
+        {editMode && (
+          <MetricsEditor title="Instagram" fields={IG_FIELDS} source={server.instagram} apiCur={data?.instagram?.monthly?.find((x) => x.key === sel) || null} monthKey={sel} onSave={saveInstagram} />
+        )}
         {ig?.cur ? (
           <>
             <div style={grid(150)}>
@@ -1130,7 +1168,7 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
       <Section title={<span>👍 Facebook / Meta (orgánico) {editMode && <span style={chromeBadge}>EDITABLE</span>}</span>}>
         {data?.errors?.facebook && <div style={{ color: "#b45309", fontSize: 13, marginBottom: 10 }}>Facebook: {data.errors.facebook}</div>}
         {editMode && (
-          <FacebookEditor source={server.facebook} apiCur={data?.facebook?.monthly?.find((x) => x.key === sel) || null} monthKey={sel} onSave={saveFacebook} />
+          <MetricsEditor title="Facebook" fields={FB_FIELDS} source={server.facebook} apiCur={data?.facebook?.monthly?.find((x) => x.key === sel) || null} monthKey={sel} onSave={saveFacebook} />
         )}
         {fb?.cur ? (
           <>
