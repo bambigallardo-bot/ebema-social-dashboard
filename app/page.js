@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useMemo, useContext, createContext } from "react";
+import { useEffect, useState, useCallback, useMemo, useContext, createContext, useRef } from "react";
 
 // Contexto de edición: provee si se puede editar, de dónde leer los overrides y cómo guardar.
 const EditCtx = createContext({ kv: false, canEdit: false, getOverride: () => null, save: null, reset: null });
@@ -695,12 +695,19 @@ export default function Page() {
     }
   }, []);
 
-  const loadOverrides = useCallback(async () => {
+  // Si la lectura falla NO se vacía lo que hay en pantalla (un guardado posterior pisaría los otros meses):
+  // se reintenta y el modo edición no se abre hasta haber leído lo guardado.
+  const overridesOk = useRef(false);
+  const loadOverrides = useCallback(async (intento = 0) => {
     try {
       const res = await fetch("/api/overrides", { cache: "no-store" });
+      if (!res.ok) throw new Error("overrides " + res.status);
       const j = await res.json();
+      overridesOk.current = true;
       setServer({ conclusions: j.conclusions || {}, competencia: j.competencia || null, linkedin: j.linkedin || null, facebook: j.facebook || null, instagram: j.instagram || null, kv: !!j.kv });
-    } catch (_) {}
+    } catch (_) {
+      if (intento < 6) setTimeout(() => loadOverrides(intento + 1), 4000);
+    }
   }, []);
 
   useEffect(() => {
@@ -716,6 +723,7 @@ export default function Page() {
   }, []);
 
   const unlock = async () => {
+    if (!overridesOk.current) { setPassMsg("Todavía cargando lo guardado, intenta en unos segundos"); loadOverrides(); return; }
     try {
       const res = await fetch("/api/overrides", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "check", password: passInput }) });
       const j = await res.json();

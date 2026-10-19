@@ -5,7 +5,13 @@ export const revalidate = 0;
 
 // Lectura pública: el cliente carga las ediciones guardadas (conclusiones + competencia).
 export async function GET() {
-  const store = await readStore();
+  let store;
+  try {
+    store = await readStore();
+  } catch (e) {
+    // Sin datos falsos vacíos: el navegador se queda con lo que ya tenía.
+    return Response.json({ error: String(e.message || e) }, { status: 503, headers: { "Cache-Control": "no-store" } });
+  }
   return Response.json(
     { conclusions: store.conclusions || {}, competencia: store.competencia || null, linkedin: store.linkedin || null, facebook: store.facebook || null, instagram: store.instagram || null, kv: kvEnabled() },
     { headers: { "Cache-Control": "no-store" } }
@@ -21,7 +27,13 @@ export async function POST(req) {
   if (body.action === "check") return Response.json({ ok: true, kv: kvEnabled() });
   if (!kvEnabled()) return Response.json({ error: "Falta configurar Vercel Blob (BLOB_READ_WRITE_TOKEN)" }, { status: 400 });
 
-  const store = await readStore();
+  let store;
+  try {
+    store = await readStore();
+  } catch (e) {
+    // Si no se pudo leer lo guardado, NO se escribe: guardar encima de un store vacío borraba todo.
+    return Response.json({ error: "No se pudo leer lo guardado, intenta de nuevo en unos segundos (" + String(e.message || e) + ")" }, { status: 503 });
+  }
   store.conclusions = store.conclusions || {};
   if (body.type === "conclusion") {
     if (body.value == null || body.value === "") delete store.conclusions[body.key];
