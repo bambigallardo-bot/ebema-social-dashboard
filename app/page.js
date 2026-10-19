@@ -112,6 +112,7 @@ function Conclusion({ id, text }) {
   const [draft, setDraft] = useState("");
   const [localOv, setLocalOv] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [drafting, setDrafting] = useState(false);
   const usingServer = ctx.kv;
   useEffect(() => {
     if (usingServer || !id) return;
@@ -132,6 +133,18 @@ function Conclusion({ id, text }) {
     else { try { localStorage.removeItem(`concl:${id}`); } catch (_) {} setLocalOv(null); }
     setSaving(false); setEditing(false);
   };
+  // Borrador con IA: escribe como el equipo (guía + datos + mes anterior + ejemplos de otras marcas).
+  // Solo llena el cuadro de edición; nada se guarda hasta que alguien aprieta Guardar.
+  const doDraft = async () => {
+    setDrafting(true);
+    try {
+      const res = await fetch("/api/draft", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ password: ctx.pass, id, autoText: text || "", currentText: draft }) });
+      const j = await res.json().catch(() => ({}));
+      if (res.ok && j.text) setDraft(j.text);
+      else alert("No se pudo generar el borrador: " + (j.error || res.status));
+    } catch (e) { alert("No se pudo generar el borrador: " + String(e.message || e)); }
+    setDrafting(false);
+  };
   const whiteBtn = { background: "rgba(255,255,255,0.18)", color: "#fff", border: "1px solid rgba(255,255,255,0.55)", borderRadius: 8, padding: "5px 10px", cursor: "pointer", fontSize: 12 };
   return (
     <div style={{ background: BRAND, borderRadius: 14, padding: 16, marginTop: 18, color: "#fff", boxShadow: "0 1px 3px rgba(225,29,72,0.25)" }}>
@@ -148,6 +161,7 @@ function Conclusion({ id, text }) {
             <button disabled={saving} onClick={doSave} style={{ background: "#fff", color: BRAND, border: "none", borderRadius: 8, padding: "5px 12px", cursor: "pointer", fontSize: 12, fontWeight: 700 }}>{saving ? "Guardando…" : "Guardar"}</button>
             <button disabled={saving} onClick={doReset} style={whiteBtn}>Restaurar automática</button>
             <button onClick={() => setEditing(false)} style={whiteBtn}>Cancelar</button>
+            <button disabled={drafting || saving} onClick={doDraft} style={whiteBtn} title="Escribe un borrador analítico con los datos del mes, lo dicho el mes anterior y cómo escribe el equipo. No se guarda solo.">{drafting ? "Escribiendo… (~40 s)" : "✨ Borrador analítico"}</button>
           </div>
         </div>
       ) : (
@@ -788,10 +802,11 @@ export default function Page() {
   const editCtxValue = useMemo(() => ({
     kv: server.kv,
     canEdit: editMode,
+    pass: editPass,
     getOverride: (id) => server.conclusions?.[id] ?? null,
     save: saveConclusion,
     reset: resetConclusion,
-  }), [server.kv, server.conclusions, editMode, saveConclusion, resetConclusion]);
+  }), [server.kv, server.conclusions, editMode, editPass, saveConclusion, resetConclusion]);
 
   const months = data?.months || [];
   // Selecciona por defecto el último mes con datos.
