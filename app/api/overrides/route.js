@@ -13,7 +13,7 @@ export async function GET() {
     return Response.json({ error: String(e.message || e) }, { status: 503, headers: { "Cache-Control": "no-store" } });
   }
   return Response.json(
-    { conclusions: store.conclusions || {}, competencia: store.competencia || null, linkedin: store.linkedin || null, facebook: store.facebook || null, instagram: store.instagram || null, kv: kvEnabled() },
+    { conclusions: store.conclusions || {}, competencia: store.competencia || null, linkedin: store.linkedin || null, facebook: store.facebook || null, instagram: store.instagram || null, ads: store.ads || null, gads: store.gads || null, ga4: store.ga4 || null, kv: kvEnabled() },
     { headers: { "Cache-Control": "no-store" } }
   );
 }
@@ -46,6 +46,8 @@ export async function POST(req) {
     store.facebook = body.value;
   } else if (body.type === "instagram") {
     store.instagram = body.value;
+  } else if (body.type === "ads" || body.type === "gads" || body.type === "ga4") {
+    store[body.type] = body.value;
   } else {
     return Response.json({ error: "tipo inválido" }, { status: 400 });
   }

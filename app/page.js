@@ -672,6 +672,39 @@ const IG_FIELDS = [
   { k: "webClicks", label: "Clics a la web" },
   { k: "engagement", label: "Engagement (%)" },
 ];
+// Paid / campañas
+const META_ADS_FIELDS = [
+  { k: "spend", label: "Inversión" },
+  { k: "conversations", label: "Conversaciones" },
+  { k: "cpr", label: "CPR (costo/conv.)" },
+  { k: "reach", label: "Alcance" },
+  { k: "clicks", label: "Clics" },
+  { k: "ctr", label: "CTR (%)" },
+];
+const GOOGLE_ADS_FIELDS = [
+  { k: "cost", label: "Inversión" },
+  { k: "conversions", label: "Conversiones" },
+  { k: "costPerConv", label: "Costo / conv." },
+  { k: "clicks", label: "Clics" },
+  { k: "ctr", label: "CTR (%)" },
+  { k: "cpc", label: "CPC" },
+];
+const GA4_FIELDS = [
+  { k: "activeUsers", label: "Usuarios activos" },
+  { k: "sessions", label: "Sesiones" },
+  { k: "views", label: "Vistas" },
+  { k: "keyEvents", label: "Eventos clave" },
+  { k: "events", label: "Eventos totales" },
+  { k: "avgEngagementSec", label: "Duración media (seg)" },
+];
+
+// Aplica un override de un mes sobre el objeto de la API: solo pisa los campos con número válido (vacío = queda el automático).
+function applyOv(obj, monthOv, keys) {
+  if (!obj || !monthOv) return obj;
+  const out = { ...obj };
+  for (const k of keys) if (monthOv[k] != null && monthOv[k] !== "") out[k] = Number(monthOv[k]);
+  return out;
+}
 
 // ---------------- Page ----------------
 export default function Page() {
@@ -681,7 +714,7 @@ export default function Page() {
   const [sel, setSel] = useState(null);
 
   // Modo edición + overrides compartidos (servidor).
-  const [server, setServer] = useState({ conclusions: {}, competencia: null, linkedin: null, facebook: null, instagram: null, kv: false });
+  const [server, setServer] = useState({ conclusions: {}, competencia: null, linkedin: null, facebook: null, instagram: null, ads: null, gads: null, ga4: null, kv: false });
   const [editParam, setEditParam] = useState(false);
   const [editMode, setEditMode] = useState(false);
   // Pestañas principales del informe. Al exportar el PDF se muestran todas.
@@ -718,7 +751,7 @@ export default function Page() {
       if (!res.ok) throw new Error("overrides " + res.status);
       const j = await res.json();
       overridesOk.current = true;
-      setServer({ conclusions: j.conclusions || {}, competencia: j.competencia || null, linkedin: j.linkedin || null, facebook: j.facebook || null, instagram: j.instagram || null, kv: !!j.kv });
+      setServer({ conclusions: j.conclusions || {}, competencia: j.competencia || null, linkedin: j.linkedin || null, facebook: j.facebook || null, instagram: j.instagram || null, ads: j.ads || null, gads: j.gads || null, ga4: j.ga4 || null, kv: !!j.kv });
     } catch (_) {
       if (intento < 6) setTimeout(() => loadOverrides(intento + 1), 4000);
     }
@@ -778,6 +811,13 @@ export default function Page() {
   const saveInstagram = useCallback(async (obj) => {
     const res = await fetch("/api/overrides", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ password: editPass, type: "instagram", value: obj }) });
     if (res.ok) { setServer((s) => ({ ...s, instagram: obj })); return true; }
+    const j = await res.json().catch(() => ({})); alert("No se pudo guardar: " + (j.error || res.status)); return false;
+  }, [editPass]);
+
+  // Guardado genérico para las secciones paid (ads / gads / ga4).
+  const savePaid = useCallback(async (type, obj) => {
+    const res = await fetch("/api/overrides", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ password: editPass, type, value: obj }) });
+    if (res.ok) { setServer((s) => ({ ...s, [type]: obj })); return true; }
     const j = await res.json().catch(() => ({})); alert("No se pudo guardar: " + (j.error || res.status)); return false;
   }, [editPass]);
 
@@ -879,35 +919,41 @@ export default function Page() {
   const ads = useMemo(() => {
     const m = data?.ads;
     if (!m) return null;
-    const cur = m.monthly?.find((x) => x.key === sel) || null;
-    const prev = m.monthly?.find((x) => x.key === prevKey) || null;
-    return { currency: m.currency, cur, prev, series: m.monthly || [] };
-  }, [data, sel, prevKey]);
+    const ov = server.ads || {}, keys = META_ADS_FIELDS.map((f) => f.k);
+    const mg = (x, k) => applyOv(x, ov[k], keys);
+    const cur = mg(m.monthly?.find((x) => x.key === sel) || null, sel);
+    const prev = mg(m.monthly?.find((x) => x.key === prevKey) || null, prevKey);
+    return { currency: m.currency, cur, prev, series: (m.monthly || []).map((x) => mg(x, x.key)) };
+  }, [data, server.ads, sel, prevKey]);
 
   // --- Google Ads ---
   const gads = useMemo(() => {
     const m = data?.googleAds;
     if (!m) return null;
-    const cur = m.monthly?.find((x) => x.key === sel) || null;
-    const prev = m.monthly?.find((x) => x.key === prevKey) || null;
+    const ov = server.gads || {}, keys = GOOGLE_ADS_FIELDS.map((f) => f.k);
+    const mg = (x, k) => applyOv(x, ov[k], keys);
+    const cur = mg(m.monthly?.find((x) => x.key === sel) || null, sel);
+    const prev = mg(m.monthly?.find((x) => x.key === prevKey) || null, prevKey);
     return {
       currency: m.currency,
       cur,
       prev,
-      series: m.monthly || [],
+      series: (m.monthly || []).map((x) => mg(x, x.key)),
       keywords: m.keywordsByMonth?.[sel] || [],
       campaigns: m.campaignsByMonth?.[sel] || [],
     };
-  }, [data, sel, prevKey]);
+  }, [data, server.gads, sel, prevKey]);
 
   // --- GA4 ---
   const ga4 = useMemo(() => {
     const m = data?.ga4;
     if (!m) return null;
-    const cur = m.monthly?.find((x) => x.key === sel) || null;
-    const prev = m.monthly?.find((x) => x.key === prevKey) || null;
-    return { cur, prev, series: m.monthly || [], channels: m.channelsByMonth?.[sel] || [] };
-  }, [data, sel, prevKey]);
+    const ov = server.ga4 || {}, keys = GA4_FIELDS.map((f) => f.k);
+    const mg = (x, k) => applyOv(x, ov[k], keys);
+    const cur = mg(m.monthly?.find((x) => x.key === sel) || null, sel);
+    const prev = mg(m.monthly?.find((x) => x.key === prevKey) || null, prevKey);
+    return { cur, prev, series: (m.monthly || []).map((x) => mg(x, x.key)), channels: m.channelsByMonth?.[sel] || [] };
+  }, [data, server.ga4, sel, prevKey]);
 
   // --- LinkedIn (API en vivo, con fallback a datos sembrados en data/manual.json) ---
   const li = useMemo(() => {
@@ -1372,8 +1418,11 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
 
       {showTab("paid") && (<>
       {/* META ADS (PAID) */}
-      <Section title="🎯 Meta Ads (paid)" subtitle="Conversaciones iniciadas, inversión y costo por resultado (CPR) por sucursal">
+      <Section title={<span>🎯 Meta Ads (paid) {editMode && <span style={chromeBadge}>EDITABLE</span>}</span>} subtitle="Conversaciones iniciadas, inversión y costo por resultado (CPR) por sucursal">
         {data?.errors?.ads && <div style={{ color: "#b45309", fontSize: 13, marginBottom: 10 }}>Meta Ads: {data.errors.ads}</div>}
+        {editMode && (
+          <MetricsEditor title="Meta Ads" fields={META_ADS_FIELDS} source={server.ads} apiCur={data?.ads?.monthly?.find((x) => x.key === sel) || null} monthKey={sel} onSave={(obj) => savePaid("ads", obj)} />
+        )}
         {ads?.cur ? (
           <>
             <div style={grid(150)}>
@@ -1434,8 +1483,11 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
 
       {showTab("paid") && (<>
       {/* GOOGLE ADS (PAID) */}
-      <Section title="🔎 Google Ads (paid)" subtitle="Conversiones, CTR, inversión y top keywords del Search">
+      <Section title={<span>🔎 Google Ads (paid) {editMode && <span style={chromeBadge}>EDITABLE</span>}</span>} subtitle="Conversiones, CTR, inversión y top keywords del Search">
         {data?.errors?.googleAds && <div style={{ color: "#b45309", fontSize: 13, marginBottom: 10 }}>Google Ads: {data.errors.googleAds}</div>}
+        {editMode && (
+          <MetricsEditor title="Google Ads" fields={GOOGLE_ADS_FIELDS} source={server.gads} apiCur={data?.googleAds?.monthly?.find((x) => x.key === sel) || null} monthKey={sel} onSave={(obj) => savePaid("gads", obj)} />
+        )}
         {gads?.cur ? (
           <>
             <div style={grid(150)}>
@@ -1516,8 +1568,11 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
 
       {showTab("web") && (<>
       {/* GA4 */}
-      <Section title="📊 Google Analytics (GA4)" subtitle="Rendimiento del sitio y fuentes de tráfico">
+      <Section title={<span>📊 Google Analytics (GA4) {editMode && <span style={chromeBadge}>EDITABLE</span>}</span>} subtitle="Rendimiento del sitio y fuentes de tráfico">
         {data?.errors?.ga4 && <div style={{ color: "#b45309", fontSize: 13, marginBottom: 10 }}>GA4: {data.errors.ga4}</div>}
+        {editMode && (
+          <MetricsEditor title="GA4" fields={GA4_FIELDS} source={server.ga4} apiCur={data?.ga4?.monthly?.find((x) => x.key === sel) || null} monthKey={sel} onSave={(obj) => savePaid("ga4", obj)} />
+        )}
         {ga4?.cur ? (
           <>
             <div style={grid(150)}>
