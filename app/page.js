@@ -946,13 +946,16 @@ export default function Page() {
 
   // --- GA4 ---
   const ga4 = useMemo(() => {
-    const m = data?.ga4;
-    if (!m) return null;
     const ov = server.ga4 || {}, keys = GA4_FIELDS.map((f) => f.k);
+    // Si la API de GA4 falla, se muestran igual las cifras cargadas a mano.
+    const m = data?.ga4 || (Object.keys(ov).length ? { monthly: [] } : null);
+    if (!m) return null;
     const mg = (x, k) => applyOv(x, ov[k], keys);
-    const cur = mg(m.monthly?.find((x) => x.key === sel) || null, sel);
-    const prev = mg(m.monthly?.find((x) => x.key === prevKey) || null, prevKey);
-    return { cur, prev, series: (m.monthly || []).map((x) => mg(x, x.key)), channels: m.channelsByMonth?.[sel] || [] };
+    const base = (k) => m.monthly?.find((x) => x.key === k) || (ov[k] ? { key: k } : null);
+    const monthly = [...(m.monthly || [])];
+    for (const k of Object.keys(ov)) if (!monthly.some((x) => x.key === k)) monthly.push({ key: k });
+    monthly.sort((a, b) => a.key.localeCompare(b.key));
+    return { cur: mg(base(sel), sel), prev: mg(base(prevKey), prevKey), series: monthly.map((x) => mg(x, x.key)), channels: m.channelsByMonth?.[sel] || [] };
   }, [data, server.ga4, sel, prevKey]);
 
   // --- LinkedIn (API en vivo, con fallback a datos sembrados en data/manual.json) ---
