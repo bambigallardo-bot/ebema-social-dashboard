@@ -689,6 +689,8 @@ const GOOGLE_ADS_FIELDS = [
   { k: "ctr", label: "CTR (%)" },
   { k: "cpc", label: "CPC" },
 ];
+const SHOW_GA4 = false;
+
 const GA4_FIELDS = [
   { k: "activeUsers", label: "Usuarios activos" },
   { k: "sessions", label: "Sesiones" },
@@ -945,7 +947,10 @@ export default function Page() {
   }, [data, server.gads, sel, prevKey]);
 
   // --- GA4 ---
+  // GA4 quitado del dashboard (nov-2026): no hay acceso a la property de Ebema y se revisa
+  // directo en analytics.google.com. Para volver a mostrarlo, SHOW_GA4 = true.
   const ga4 = useMemo(() => {
+    if (!SHOW_GA4) return null;
     const ov = server.ga4 || {}, keys = GA4_FIELDS.map((f) => f.k);
     // Si la API de GA4 falla, se muestran igual las cifras cargadas a mano.
     const m = data?.ga4 || (Object.keys(ov).length ? { monthly: [] } : null);
@@ -1061,7 +1066,7 @@ export default function Page() {
     { key: "resumen", label: "📊 Resumen" },
     { key: "contenidos", label: "📸 Contenidos" },
     { key: "paid", label: "🎯 Paid" },
-    { key: "web", label: "🌐 Web" },
+    ...(SHOW_GA4 ? [{ key: "web", label: "🌐 Web" }] : []),
     { key: "email", label: "✉️ Email y WhatsApp" },
   ];
   const showTab = (k) => printAll || mainTab === k;
@@ -1128,7 +1133,7 @@ export default function Page() {
         <div style={{ padding: "0 16px 16px", fontSize: 13.5, lineHeight: 1.5, color: "#374151" }}>
           <div style={{ marginBottom: 10 }}>
             <div style={{ color: "#16a34a", fontWeight: 600, marginBottom: 4 }}>✅ AUTOMÁTICO — no necesitas tocar</div>
-            KPIs del mes y comparativas vs. mes anterior · gráficos de tendencia (6 meses) · top keywords de Google · resultados Meta Ads por campaña/sucursal · GA4 y fuentes de tráfico · conclusiones redactadas por canal · <b>Plan del próximo mes</b> con acciones priorizadas e inversión sugerida.
+            KPIs del mes y comparativas vs. mes anterior · gráficos de tendencia (6 meses) · top keywords de Google · resultados Meta Ads por campaña/sucursal · conclusiones redactadas por canal · <b>Plan del próximo mes</b> con acciones priorizadas e inversión sugerida.
           </div>
           <div>
             <div style={{ color: "#d97706", fontWeight: 600, marginBottom: 4 }}>⚠️ MANUAL — revisar antes de enviar al cliente</div>
@@ -1569,7 +1574,7 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
 
       </>)}
 
-      {showTab("web") && (<>
+      {SHOW_GA4 && showTab("web") && (<>
       {/* GA4 */}
       <Section title={<span>📊 Google Analytics (GA4) {editMode && <span style={chromeBadge}>EDITABLE</span>}</span>} subtitle="Rendimiento del sitio y fuentes de tráfico">
         {data?.errors?.ga4 && (editMode || !ga4?.cur) && <div style={{ color: "#b45309", fontSize: 13, marginBottom: 10 }}>GA4: {data.errors.ga4}</div>}
@@ -1780,7 +1785,7 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
       </>)}
 
       <footer style={{ marginTop: 50, color: "#9aa3af", fontSize: 12, textAlign: "center" }}>
-        Datos vía Meta Graph API (IG, FB, Meta Ads), Google Ads, GA4, Brevo y LinkedIn · Competencia desde Meta Business Suite · Ebema · Copywriters
+        Datos vía Meta Graph API (IG, FB, Meta Ads), Google Ads, Brevo y LinkedIn · Competencia desde Meta Business Suite · Ebema · Copywriters
       </footer>
     </main>
    </EditCtx.Provider>

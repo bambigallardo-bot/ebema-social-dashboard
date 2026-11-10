@@ -1,7 +1,6 @@
 import { getMetaDashboard } from "../../../lib/meta";
 import { getEmail, getWhatsapp } from "../../../lib/brevo";
 import { getGoogleAds } from "../../../lib/googleads";
-import { getGA4 } from "../../../lib/ga4";
 import { getLinkedin } from "../../../lib/linkedin";
 import manual from "../../../data/manual.json";
 
@@ -58,7 +57,7 @@ export async function GET() {
       settle(getEmail, 25000, "Email"),
       settle(getWhatsapp, 25000, "WhatsApp"),
       settle(() => getGoogleAds(months), 35000, "Google Ads"),
-      settle(() => getGA4(months), 35000, "GA4"),
+      Promise.resolve({ value: null, error: null }), // GA4 quitado del dashboard (nov-2026)
       settle(() => getLinkedin(months), 25000, "LinkedIn"),
     ]);
     const m = meta.value || {};
