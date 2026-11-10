@@ -1572,7 +1572,7 @@ Actualizar a inicio de mes: <b>LinkedIn</b> (con Claude para Chrome, extrae de L
       {showTab("web") && (<>
       {/* GA4 */}
       <Section title={<span>📊 Google Analytics (GA4) {editMode && <span style={chromeBadge}>EDITABLE</span>}</span>} subtitle="Rendimiento del sitio y fuentes de tráfico">
-        {data?.errors?.ga4 && <div style={{ color: "#b45309", fontSize: 13, marginBottom: 10 }}>GA4: {data.errors.ga4}</div>}
+        {data?.errors?.ga4 && (editMode || !ga4?.cur) && <div style={{ color: "#b45309", fontSize: 13, marginBottom: 10 }}>GA4: {data.errors.ga4}</div>}
         {editMode && (
           <MetricsEditor title="GA4" fields={GA4_FIELDS} source={server.ga4} apiCur={data?.ga4?.monthly?.find((x) => x.key === sel) || null} monthKey={sel} onSave={(obj) => savePaid("ga4", obj)} />
         )}
